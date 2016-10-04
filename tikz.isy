@@ -1,0 +1,389 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipestyle SYSTEM "ipe.dtd">
+
+<ipestyle name="tikz">
+
+<!-- use the TikZ default path settings -->
+<pathstyle cap="0" join="0" fillrule="wind"/>
+
+<!-- standard colors from xcolor -->
+<color name="red" value="1 0 0"/>
+<color name="green" value="0 1 0"/>
+<color name="blue" value="0 0 1"/>
+<color name="brown" value=".75 .5 .25"/>
+<color name="lime" value=".75 1 0"/>
+<color name="orange" value="1 .5 0"/>
+<color name="pink" value="1 .75 .75"/>
+<color name="purple" value=".75 0 .25"/>
+<color name="teal" value="0 .5 .5"/>
+<color name="violet" value=".5 0 .5"/>
+<color name="cyan" value="0 1 1"/>
+<color name="magenta" value="1 0 1"/>
+<color name="yellow" value="1 1 0"/>
+<color name="olive" value=".5 .5 0"/>
+<color name="darkgray" value=".25 .25 .25"/>
+<color name="gray" value=".5 .5 .5"/>
+<color name="lightgray" value=".75 .75 .75"/>
+
+<!-- Line widths predefined in TikZ.  In TikZ these are in TeX's points, which
+     are slightly smaller than usual points used in ipe, but it shouldn't be
+     noticeable. -->
+<pen name="ultra thin" value="0.1"/>
+<pen name="very thin" value="0.2"/>
+<pen name="thin" value="0.4"/> <!-- the default -->
+<pen name="semithick" value="0.6"/>
+<pen name="thick" value="0.8"/>
+<pen name="very thick" value="1.2"/>
+<pen name="ultra thick" value="1.6"/>
+
+<!-- Dash patterns predefined in TikZ.  These can't be directly
+     reproduced in ipe, since the length of a dot in TikZ is the
+     line width. -->
+<dashstyle name="solid" value="[] 0"/>
+<dashstyle name="dotted" value="[1 3] 0"/>
+<dashstyle name="densely dotted" value="[1 1] 0"/>
+<dashstyle name="loosely dotted" value="[1 4] 0"/>
+<dashstyle name="dashed" value="[3] 0"/>
+<dashstyle name="densely dashed" value="[3 2] 0"/>
+<dashstyle name="loosely dashed" value="[3 6] 0"/>
+<dashstyle name="dash dot" value="[3 2 1 2] 0"/>
+<dashstyle name="densely dash dot" value="[3 1 1 1] 0"/>
+<dashstyle name="loosely dash dot" value="[3 4 1 4] 0"/>
+<dashstyle name="dash dot dot" value="[3 2 1 2 1 2] 0"/>
+<dashstyle name="densely dash dot dot" value="[3 1 1 1 1 1] 0"/>
+<dashstyle name="loosely dash dot dot" value="[3 4 1 4 1 4] 0"/>
+
+<!-- Opacities predefined in TikZ -->
+<opacity name="transparent" value="0.001"/>
+<opacity name="ultra nearly transparent" value="0.05"/>
+<opacity name="very nearly transparent" value="0.1"/>
+<opacity name="nearly transparent" value="0.25"/>
+<opacity name="semitransparent" value="0.5"/>
+<opacity name="nearly opaque" value="0.75"/>
+<opacity name="very nearly opaque" value="0.9"/>
+<opacity name="ultra nearly opaque" value="0.95"/>
+<opacity name="opaque" value="1"/>
+
+<!-- Tiling patterns predefined in TikZ's patterns library, which can be
+     recreated in ipe's restrictive tiling syntax.  Again these should be in TeX
+     points and not normal ones, but it shouldn't be noticeable. -->
+<tiling name="horizontal lines" angle="0" width=".4" step="3"/>
+<tiling name="vertical lines" angle="90" width=".4" step="3"/>
+<tiling name="north east lines" angle="45" width=".4" step="2.1213"/>
+<tiling name="north west lines" angle="135" width=".4" step="2.1213"/>
+
+<!-- These translate into "ipe mark *" keys -->
+<symbolsize name="small" value="2"/>
+<symbolsize name="tiny" value="1.1"/>
+<symbolsize name="large" value="5"/>
+
+<!-- These translate into "ipe *" pic keys -->
+<symbol name="mark/circle(sx)" transformations="translations">
+<path fill="sym-stroke">
+0.6 0 0 0.6 0 0 e
+0.4 0 0 0.4 0 0 e
+</path></symbol>
+<symbol name="mark/disk(sx)" transformations="translations">
+<path fill="sym-stroke">
+0.6 0 0 0.6 0 0 e
+</path></symbol>
+<symbol name="mark/fdisk(sfx)" transformations="translations">
+<group><path fill="sym-fill">
+0.5 0 0 0.5 0 0 e
+</path><path fill="sym-stroke" fillrule="eofill">
+0.6 0 0 0.6 0 0 e
+0.4 0 0 0.4 0 0 e
+</path></group></symbol>
+<symbol name="mark/box(sx)" transformations="translations">
+<path fill="sym-stroke" fillrule="eofill">
+-0.6 -0.6 m
+0.6 -0.6 l
+0.6 0.6 l
+-0.6 0.6 l
+h
+-0.4 -0.4 m
+0.4 -0.4 l
+0.4 0.4 l
+-0.4 0.4 l
+h
+</path></symbol>
+<symbol name="mark/square(sx)" transformations="translations">
+<path fill="sym-stroke">
+-0.6 -0.6 m
+0.6 -0.6 l
+0.6 0.6 l
+-0.6 0.6 l
+h
+</path></symbol>
+<symbol name="mark/fsquare(sfx)" transformations="translations">
+<group><path fill="sym-fill">
+-0.5 -0.5 m
+0.5 -0.5 l
+0.5 0.5 l
+-0.5 0.5 l
+h
+</path>
+<path fill="sym-stroke" fillrule="eofill">
+-0.6 -0.6 m
+0.6 -0.6 l
+0.6 0.6 l
+-0.6 0.6 l
+h
+-0.4 -0.4 m
+0.4 -0.4 l
+0.4 0.4 l
+-0.4 0.4 l
+h
+</path></group></symbol>
+<symbol name="mark/cross(sx)" transformations="translations">
+<group><path fill="sym-stroke">
+-0.43 -0.57 m
+0.57 0.43 l
+0.43 0.57 l
+-0.57 -0.43 l
+h
+</path>
+<path fill="sym-stroke">
+-0.43 0.57 m
+0.57 -0.43 l
+0.43 -0.57 l
+-0.57 0.43 l
+h
+</path>
+</group></symbol>
+
+<!-- These are just approximations of TikZ arrows with standard line width;
+     TikZ's arrow processing is much more complicated. -->
+<symbol name="arrow/normal(spx)"> <!-- Same as To -->
+<path join="1" cap="1" pen="sym-pen" stroke="sym-stroke">
+-2.07224 2.39104 m
+-1.69365 0.95639
+-0.84999 0.27895
+0.0 0.0 c
+-0.84999 -0.27895
+-1.69365 -0.95639
+-2.07224 -2.39104 c
+</path>
+</symbol>
+<symbol name="arrow/To(spx)">
+<path join="1" cap="1" pen="sym-pen" stroke="sym-stroke">
+-2.07224 2.39104 m
+-1.69365 0.95639
+-0.84999 0.27895
+0.0 0.0 c
+-0.84999 -0.27895
+-1.69365 -0.95639
+-2.07224 -2.39104 c
+</path>
+</symbol>
+<symbol name="arrow/To To(spx)">
+<group>
+<path join="1" cap="1" pen="sym-pen" stroke="sym-stroke">
+-2.07224 2.39104 m
+-1.69365 0.95639
+-0.84999 0.27895
+0.0 0.0 c
+-0.84999 -0.27895
+-1.69365 -0.95639
+-2.07224 -2.39104 c
+</path>
+<path matrix="1 0 0 1 -2.47075 0" join="1" cap="1" pen="sym-pen" stroke="sym-stroke">
+-2.07224 2.39104 m
+-1.69365 0.95639
+-0.84999 0.27895
+0.0 0.0 c
+-0.84999 -0.27895
+-1.69365 -0.95639
+-2.07224 -2.39104 c
+</path>
+</group>
+</symbol>
+<symbol name="arrow/Latex(spx)">
+<path matrix="1 0 0 1 -3.7613 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="sym-stroke">
+  3.7613 0.0 m
+  3.2994 0.11273
+  1.26901 0.75153
+  0.0 1.44672 c
+  0.0 -1.44672 l
+  1.26901 -0.75153
+  3.2994 -0.11273
+  3.7613 0.0 c
+  h
+</path>
+</symbol>
+<symbol name="arrow/Latex[open](spx)">
+<path matrix="1 0 0 1 -3.7613 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="white">
+  3.7613 0.0 m
+  3.2994 0.11273
+  1.26901 0.75153
+  0.0 1.44672 c
+  0.0 -1.44672 l
+  1.26901 -0.75153
+  3.2994 -0.11273
+  3.7613 0.0 c
+  h
+</path>
+</symbol>
+<symbol name="arrow/Stealth(spx)">
+<path matrix="1 0 0 1 -4.21463 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="sym-stroke">
+  4.21463 0.0 m
+  0.64343 1.34572 l
+  1.8178 0.0 l
+  0.64343 -1.34572 l
+  h
+</path>
+</symbol>
+<symbol name="arrow/Stealth[open](spx)">
+<path matrix="1 0 0 1 -4.21463 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="white">
+  4.21463 0.0 m
+  0.64343 1.34572 l
+  1.8178 0.0 l
+  0.64343 -1.34572 l
+  h
+</path>
+</symbol>
+<symbol name="arrow/Triangle(spx)">
+<path matrix="1 0 0 1 -3.17348 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="sym-stroke">
+3.17348 0.0 m
+0.19925 1.76338 l
+0.19925 0.0 l
+0.19925 -1.76338 l
+h
+</path>
+</symbol>
+<symbol name="arrow/Triangle[open](spx)">
+<path matrix="1 0 0 1 -3.17348 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="white">
+3.17348 0.0 m
+0.19925 1.76338 l
+0.19925 0.0 l
+0.19925 -1.76338 l
+h
+</path>
+</symbol>
+<symbol name="arrow/Kite(spx)">
+<path matrix="1 0 0 1 -5.10841 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="sym-stroke">
+ 5.10841 0.0 m
+ 1.48842 1.20667 l
+ 0.28177 0.0 l
+ 1.48842 -1.20667 l
+ h
+</path>
+</symbol>
+<symbol name="arrow/Kite[open](spx)">
+<path matrix="1 0 0 1 -5.10841 0" join="0" cap="0"
+      pen="sym-pen" stroke="sym-stroke" fill="white">
+ 5.10841 0.0 m
+ 1.48842 1.20667 l
+ 0.28177 0.0 l
+ 1.48842 -1.20667 l
+ h
+</path>
+</symbol>
+<symbol name="arrow/Hooks(spx)">
+<path join="0" cap="0" pen="sym-pen" stroke="sym-stroke">
+0 2.09215 m
+0.57773 2.09215
+1.04607 1.62381
+1.04607 1.04607 c
+1.04607 0.46834
+0.57773 0
+0 0 c
+0.57773 0
+1.04607 -0.46834
+1.04607 -1.04607 c
+1.04607 -1.62381
+0.57773 -2.09215
+0 -2.09215 c
+</path>
+</symbol>
+<!-- Note that these will stick out beyond the path in ipe but not in TikZ (ipe
+     doesn't shorten the path to accommodate the arrow) -->
+<symbol name="arrow/Hooks[harpoon](spx)">
+<path join="0" cap="0" pen="sym-pen" stroke="sym-stroke">
+0 2.09215 m
+0.57773 2.09215
+1.04607 1.62381
+1.04607 1.04607 c
+1.04607 0.46834
+0.57773 0
+0 0 c
+</path>
+</symbol>
+<symbol name="arrow/Hooks[harpoon,swap](spx)">
+<path join="0" cap="0" pen="sym-pen" stroke="sym-stroke">
+0 0 m
+0.57773 0
+1.04607 -0.46834
+1.04607 -1.04607 c
+1.04607 -1.62381
+0.57773 -2.09215
+0 -2.09215 c
+</path>
+</symbol>
+<symbol name="arrow/Bar(spx)">
+<path join="0" cap="0" pen="sym-pen" stroke="sym-stroke">
+0.0 2.29141 m
+0.0 -2.29141 l
+</path>
+</symbol>
+<symbol name="arrow/To Bar(spx)">
+<group>
+<path matrix="1 0 0 1 -.3985 0" join="1" cap="1" pen="sym-pen" stroke="sym-stroke">
+-2.07224 2.39104 m
+-1.69365 0.95639
+-0.84999 0.27895
+0.0 0.0 c
+-0.84999 -0.27895
+-1.69365 -0.95639
+-2.07224 -2.39104 c
+</path>
+<path join="0" cap="0" pen="sym-pen" stroke="sym-stroke">
+0.0 2.29141 m
+0.0 -2.29141 l
+</path>
+</group>
+</symbol>
+
+<!-- The arrow paths above are in their natural size -->
+<arrowsize name="normal" value="1"/>
+<arrowsize name="small" value=".7"/>
+<arrowsize name="tiny" value=".4"/>
+<arrowsize name="large" value="1.4"/>
+
+<!-- Same as basic.isy -->
+<textsize name="large" value="\large"/>
+<textsize name="Large" value="\Large"/>
+<textsize name="LARGE" value="\LARGE"/>
+<textsize name="huge" value="\huge"/>
+<textsize name="Huge" value="\Huge"/>
+<textsize name="small" value="\small"/>
+<textsize name="footnote" value="\footnotesize"/>
+<textsize name="tiny" value="\tiny"/>
+
+<gridsize name="4 pts" value="4"/>
+<gridsize name="8 pts (~3 mm)" value="8"/>
+<gridsize name="16 pts (~6 mm)" value="16"/>
+<gridsize name="32 pts (~12 mm)" value="32"/>
+<gridsize name="10 pts (~3.5 mm)" value="10"/>
+<gridsize name="20 pts (~7 mm)" value="20"/>
+<gridsize name="14 pts (~5 mm)" value="14"/>
+<gridsize name="28 pts (~10 mm)" value="28"/>
+<gridsize name="56 pts (~20 mm)" value="56"/>
+
+<anglesize name="90 deg" value="90"/>
+<anglesize name="60 deg" value="60"/>
+<anglesize name="45 deg" value="45"/>
+<anglesize name="30 deg" value="30"/>
+<anglesize name="22.5 deg" value="22.5"/>
+
+<!-- Ignore "textstyle" -->
+
+</ipestyle>
+
