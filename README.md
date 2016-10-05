@@ -245,7 +245,8 @@ consists of the `ipe import` style, which contains (among other things):
 
 + Some colors may look different after compiling LaTeX unless you put
   `\PassOptionsToPackage{rgb}{xcolor}` before `\documentclass` in your LaTeX
-  file.  (The default color space used by `xcolor` is `cmyk`.)
+  file.  (This happens, for instance, when using symbolic colors defined by
+  `xcolor` in cmyk, and defined in `tikz.isy` or another stylesheet in rgb.)
 
 + The `textstretch` attribute of text objects is not currently available to
   ipelets.  Text using `textstretch` may not export at the correct scaling
