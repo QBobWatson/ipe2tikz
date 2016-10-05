@@ -219,9 +219,9 @@ consists of the `ipe import` style, which contains (among other things):
   be implemented within PGF/TikZ.
 
 + Exporting bitmapped images is not supported.  You can use `\includegraphics`
-  within a text object in Ipe (after putting `\usepackage{graphicx}` in the
-  preamble); the image will not display in Ipe, but it should appear after
-  compiling the exported code.
+  within a text object in Ipe, after putting `\usepackage{graphicx}` in the
+  preamble.  The image will display in Ipe (if you have a recent enough version), 
+  and it should appear after compiling the exported code.
 
 + Only the current page, and the first view on that page, are exported.
 
