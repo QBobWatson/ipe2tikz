@@ -52,7 +52,7 @@ use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
 + *Export complete document:* if this is checked, the exporter makes a document
   that can be compiled standalone.  That is, it generates a preamble,
   `\begin{document}...\end{document}` tags, etc.  If you want to `\input` the
-  output into another LaTeX file, un-check this option.  In this case, be sure
+  output file into another LaTeX file, un-check this option.  In that case, be sure
   to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
 
 + *Export stylesheet:* if this is checked, the exporter makes a TikZ version of
