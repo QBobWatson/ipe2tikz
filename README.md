@@ -16,9 +16,11 @@ TODO: picture to code
 ## Usage
 
 After installing the ipelet, select *TikZ Export* form the *Ipelets* menu, or use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
- * *Export complete document:* if this is checked, the exporter makes a document that can be compiled standalone.  That is, it generates a preamble, `\begin{document}...\end{document}` tags, etc.  If you want to `\include` the output into another LaTeX file, un-check this option.  Be sure to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
+
+ + *Export complete document:* if this is checked, the exporter makes a document that can be compiled standalone.  That is, it generates a preamble, `\begin{document}...\end{document}` tags, etc.  If you want to `\include` the output into another LaTeX file, un-check this option.  Be sure to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
  + *Export stylesheet:* if this is checked, the exporter makes a TikZ version of your included ipe stylesheets (see below).
  + *Export colors:* if this is checked, the exporter generates `\definecolor` commands for all colors defined in your ipe stylesheets.
+ + *Export scope instead of tikzpicture:* if this is checked, the generator puts TikZ code inside a `scope` environment instead of a `tikzpicture` environment.  Such a file is suitable for `\input`ting directly into a `tikzpicture`.  This option is disabled if *Export complete document* is checked.
  + *Output file:* this is where the output goes.
 
 The first thing you have to do, however, is to choose whether you want to primarily use TikZ's styles or ipe's styles.
@@ -77,3 +79,11 @@ This file is the TikZ glue code that complements the exporter.  Among other thin
  + Definitions of ipe's marks (`circle`, `disk`, etc.) as TikZ `pic` commands.
  
 ## Limitations
+
+ + Exporting gradients and effects is not supported.
+ + Exporting bitmapped images is not supported.
+ + Only the current page, and the first view on that page, are exported.
+ + The exporter won't export symbols (marks and arrows) from stylesheets; these have to be defined by hand in a TikZ stylesheet.  Note however that ipe's standard marks and arrows are defined in `tikzlibraryipe.code.tex`.
+ + When in *Export complete document* mode, the size of the paper in LaTeX is set to the size of the paper in ipe.  However, ipe also sets PDF's `ArtBox` and (optionally) `CropBox` to the bounding box of the image.  The exporter does not do that, as TikZ/PGF has no such facility, these being PDF-specific features.
+ + Some colors may look different after compiling LaTeX unless you put `\PassOptionsToPackage{rgb}{xcolor}` before `\documentclass` in your LaTeX file.
+ + The `textstretch` attribute of text objects is not currently available to ipelets.  Text using `textstretch` may not export at the correct scaling factor.
