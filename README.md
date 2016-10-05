@@ -3,9 +3,20 @@ ipe2tikz
 
 TikZ exporter ipelet: a plugin for [ipe](http://ipe.otfried.org/) that exports **readable** [TikZ](https://sourceforge.net/projects/pgf/) pictures for use in LaTeX documents.
 
-TikZ is an amazing piece of software.  To sketch a complicated shape, though, you really want a GUI, like ipe.  This ipelet is meant to allow you to sketch something in ipe, then export it into readable TikZ code that you can tweak and perhaps use in a larger picture.  It is also quite good at exporting large and complex ipe files (subject to the [limitations](#limitations) below) into standalone LaTeX documents.  Thankfully, ipe is well-suited to generating readable TikZ code, since they both rely on flexible symbolic style mechanisms to specify most drawing parameters.
+![ipe window](example.png)
 
-TODO: picture to code
+yields
+
+```latex
+\begin{tikzpicture}[ipe import]
+  \draw[red, thick]
+    (16, 48) rectangle (48, 16);
+  \filldraw[fill=blue, semitransparent]
+    (32, 32) circle[radius=16];
+\end{tikzpicture}
+```
+
+TikZ is an amazing piece of software.  To sketch a complicated shape, though, you really want a GUI, like ipe.  This ipelet is meant to allow you to sketch something in ipe, then export it into readable TikZ code that you can tweak and perhaps use in a larger picture.  It is also quite good at exporting large and complex ipe files (subject to the [limitations](#limitations) below) into standalone LaTeX documents.  Thankfully, ipe is well-suited to generating readable TikZ code, since they both rely on flexible symbolic style mechanisms to specify most drawing parameters.
 
 ## Installation
 
