@@ -22,20 +22,6 @@
 
 --]]
 
--- Limitations:
---  * Gradient, effect exporting is not supported.
---  * Bitmapped image exporting is not supported.
---  * Only exports one page, with no page decorations.
---  * Only exports the first view.
---  * Stylesheets won't export symbols (marks and arrows).  But standard ones
---    from the ipe library were done by hand.
---  * No support for CropBox / ArtBox (pgf doesn't support these)
---  * Need to use \PassOptionsToPackage{rgb}{xcolor} before \documentclass
---  * textstretch attribute of objects is not available to lua
---  * Only symbolic dash patterns (okay because that's all the GUI supports).
-
--- TODO: put on github; write documentation; license
--- TODO: ask Otfried to link to his website, send to TikZ people
 -- TODO: feature request: textstretch attribute of objects in lua
 
 label = "TikZ export"
@@ -46,77 +32,9 @@ shortcuts.ipelet_1_tikz = "Ctrl+Shift+T"
 
 -- Globals
 write = _G.io.write
-
 indent_amt = "  "
 indent = ""
 
---------------------------------------------------------------------------------
--- Debug
---------------------------------------------------------------------------------
-
-function print_r (t)
-    local print_r_cache={}
-    local function sub_print_r(t,indent)
-        if (print_r_cache[tostring(t)]) then
-            print(indent.."*"..tostring(t))
-        else
-            print_r_cache[tostring(t)]=true
-            if (_G.type(t)=="table") then
-                for pos,val in pairs(t) do
-                    if (_G.type(val)=="table") then
-                        print(indent.."["..pos.."] => "..tostring(t).." {")
-                        sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
-                        print(indent..string.rep(" ",string.len(pos)+6).."}")
-                    elseif (_G.type(val)=="string") then
-                        print(indent.."["..pos..'] => "'..val..'"')
-                    else
-                        print(indent.."["..pos.."] => "..tostring(val))
-                    end
-                end
-            else
-                print(indent..tostring(t))
-            end
-        end
-    end
-    if (_G.type(t)=="table") then
-        print(tostring(t).." {")
-        sub_print_r(t,"  ")
-        print("}")
-    else
-        sub_print_r(t,"  ")
-    end
-    print()
-end
-
-
-function print_objects(page)
-   for i, obj, sel, layer in page:objects() do
-      print(i, obj, sel, layer)
-      for i,key in ipairs({"pen", "symbolsize",
-                           "farrow", "rarrow",
-                           "farrowsize", "rarrowsize",
-                           "farrowshape", "rarrowshape",
-                           "stroke", "fill", "markshape",
-                           "pathmode", "dashstyle",
-                           "textsize", "textstyle",
-                           "opacity", "tiling", "gradient",
-                           "horizontalalignment", "verticalalignment",
-                           "linejoin", "linecap", "fillrule",
-                           "pinned", "transformations", "transformabletext",
-                           "minipage", "width"})
-      do
-         print("\t" .. key .. ": " .. tostring(obj:get(key)))
-      end
-   end
-end
-
-
-function print_params(obj)
-   local mt = _G.getmetatable(obj)
-   for k,v in pairs(mt) do
-      print(k .. ": " .. tostring(v))
-   end
-end
 
 --------------------------------------------------------------------------------
 -- Utility
