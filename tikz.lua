@@ -3,47 +3,44 @@
 ----------------------------------------------------------------------
 --[[
 
-    Copyright (C) 1993-2015  Joseph Rabinoff
+    Copyright (C) 2016  Joseph Rabinoff
 
-    This is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+    ipe2tikz is free software; you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your option)
+    any later version.
 
-    This is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-    License for more details.
+    ipe2tikz is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+    details.
 
-    You should have received a copy of the GNU General Public License
-    along with this software; if not, you can find it at
-    "http://www.gnu.org/copyleft/gpl.html", or write to the Free
-    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    You should have received a copy of the GNU General Public License along with
+    ipe2tikz; if not, you can find it at "http://www.gnu.org/copyleft/gpl.html",
+    or write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
+    02139, USA.
 
 --]]
 
 -- Limitations:
 --  * Gradient, effect exporting is not supported.
 --  * Bitmapped image exporting is not supported.
---  * Only symbolic dash patterns (okay because that's all the GUI supports).
 --  * Only exports one page, with no page decorations.
 --  * Only exports the first view.
---  * textstretch attribute of objects is not available to lua
---  * Filling paths with arrows won't work as expected in TikZ.
 --  * Stylesheets won't export symbols (marks and arrows).  But standard ones
 --    from the ipe library were done by hand.
---  * Need to use \PassOptionsToPackage{rgb}{xcolor} before \documentclass
 --  * No support for CropBox / ArtBox (pgf doesn't support these)
+--  * Need to use \PassOptionsToPackage{rgb}{xcolor} before \documentclass
+--  * textstretch attribute of objects is not available to lua
+--  * Only symbolic dash patterns (okay because that's all the GUI supports).
 
--- TODO: put on github; write documentation
+-- TODO: put on github; write documentation; license
 -- TODO: ask Otfried to link to his website, send to TikZ people
 -- TODO: feature request: textstretch attribute of objects in lua
 
 label = "TikZ export"
 
-about = [[
-Export to TikZ commands on the console.
-]]
+about = "Export readable TikZ code"
 
 shortcuts.ipelet_1_tikz = "Ctrl+Shift+T"
 
@@ -1400,6 +1397,7 @@ end
 dialog_state = {
    fulldoc=true,
    stylesheets=true,
+   scopeonly=false,
    colors=true,
    filename=nil
 }
@@ -1409,13 +1407,19 @@ function run_dialog(model)
    local d = ipeui.Dialog(model.ui:win(), "TikZ Export")
    d:add("fulldoc", "checkbox",
          {label="Export complete document\n"
-             .. "(otherwise no preamble or \\begin{document})"}, 1, 1, 1, 3)
+             .. "(otherwise no preamble or \\begin{document})",
+          action=function() d:setEnabled("scope", not d:get("fulldoc")) end},
+         1, 1, 1, 3)
    d:set("fulldoc", dialog_state.fulldoc)
+   d:add("scope", "checkbox", {label="Export scope instead of tikzpicture"},
+         2, 1, 1, 3)
+   d:set("scope", dialog_state.scopeonly)
+   d:setEnabled("scope", not dialog_state.fulldoc)
    d:add("stylesheets", "checkbox",
          {label="Export stylesheet\n"
-             .. "(otherwise use tikz.isy or similar)"}, 2, 1, 1, 3)
+             .. "(otherwise use tikz.isy or similar)"}, 3, 1, 1, 3)
    d:set("stylesheets", dialog_state.stylesheets)
-   d:add("colors", "checkbox", {label="Export colors"}, 3, 1, 1, 3)
+   d:add("colors", "checkbox", {label="Export colors"}, 4, 1, 1, 3)
    d:set("colors", dialog_state.colors)
 
    -- File dialog
@@ -1435,7 +1439,7 @@ function run_dialog(model)
       return name
    end
    local function filedialog()
-      local n = ipeui.fileDialog(d, "save", "TikZ Output File",
+      local n = ipeui.fileDialog(model.ui:win(), "save", "TikZ Output File",
                                  {"TeX (*.tex)", "*.tex"},
                                  extract_dir(), extract_name(), 1)
       if n then curname = n end
@@ -1443,19 +1447,31 @@ function run_dialog(model)
    end
    local name = extract_name()
    curname = extract_dir() .. prefs.fsep .. name
-   d:add("label2", "label", {label="Output file"}, 4, 1)
-   d:add("filename", "input", {}, 4, 2)
+   d:add("label2", "label", {label="Output file"}, 5, 1)
+   d:add("filename", "input", {}, 5, 2)
    d:set("filename", extract_name())
    d:setEnabled("filename", false)
-   d:add("choose", "button", {label="C&hoose", action=filedialog}, 4, 3)
+   d:add("choose", "button", {label="C&hoose", action=filedialog}, 5, 3)
 
    d:addButton("ok", "&Ok", "accept")
    d:addButton("cancel", "&Cancel", "reject")
+
+   -- Workaround: sometimes these updates need to happen in the gui event loop.
+   t = ipeui.Timer(
+      {setEnabled=function()
+          d:setEnabled("filename", false)
+          d:setEnabled("scope", not dialog_state.fulldoc)
+      end}, "setEnabled")
+   t:setInterval(0)
+   t:setSingleShot(true)
+   t:start()
+
    if not d:execute() then return nil end
 
    dialog_state.fulldoc = d:get("fulldoc")
    dialog_state.stylesheets = d:get("stylesheets")
    dialog_state.colors = d:get("colors")
+   dialog_state.scopeonly = d:get("scope") and not d:get("fulldoc")
    dialog_state.filename = curname
 
    return true
@@ -1523,7 +1539,9 @@ function run(model)
       write("\\noindent\n")
    end
 
-   write("\\begin{tikzpicture}")
+   local envname = "tikzpicture"
+   if dialog_state.scopeonly then envname = "scope" end
+   write("\\begin{" .. envname .. "}")
    if dialog_state.stylesheets then
       write("[ipe stylesheet]")
    else
@@ -1548,7 +1566,7 @@ function run(model)
          export_object(model, obj)
       end
    end
-   write("\\end{tikzpicture}\n")
+   write("\\end{" .. envname .. "}\n")
 
    if dialog_state.fulldoc then
       write("\\end{document}\n")
