@@ -39,10 +39,15 @@ to specify most drawing parameters.
 3. Copy `tikzlibraryipe.code.tex` somewhere LaTeX can find it, e.g. the same
    directory as the LaTeX file you're trying to compile.
 
+I have only tested this with ipe versions 7.2.?, on Linux and Macs.  You can
+file a bug report if it doesn't work on your system or ipe version, but I
+probably won't know how to fix it unless you include a patch or pull request.
+
 
 ## Usage
 
-After installing the ipelet, select *TikZ Export* form the *Ipelets* menu, or use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
+After installing the ipelet, select *TikZ Export* form the *Ipelets* menu, or
+use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
 
 + *Export complete document:* if this is checked, the exporter makes a document
   that can be compiled standalone.  That is, it generates a preamble,
