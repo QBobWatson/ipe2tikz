@@ -1,7 +1,7 @@
 ipe2tikz
 ========
 
-This is a TikZ exporter ipelet: a plugin for [ipe](http://ipe.otfried.org/) that
+This is a TikZ exporter ipelet: a plugin for [Ipe](http://ipe.otfried.org/) that
 exports **readable** [TikZ](https://sourceforge.net/projects/pgf/) pictures for
 use in LaTeX documents.
 
@@ -19,11 +19,11 @@ yields
 ```
 
 TikZ is an amazing piece of software.  To sketch a complicated shape, though,
-you really want a GUI, like ipe.  This ipelet is meant to allow you to sketch
-something in ipe, then export it into readable TikZ code that you can tweak and
+you really want a GUI, like Ipe.  This ipelet is meant to allow you to sketch
+something in Ipe, then export it into readable TikZ code that you can tweak and
 perhaps use in a larger picture.  It is also quite good at exporting large and
-complex ipe files (subject to the [limitations](#limitations) below) into
-standalone LaTeX documents.  Thankfully, ipe is well-suited to generating
+complex Ipe files (subject to the [limitations](#limitations) below) into
+standalone LaTeX documents.  Thankfully, Ipe is well-suited to generating
 readable TikZ code, since they both rely on flexible symbolic style mechanisms
 to specify most drawing parameters.
 
@@ -39,8 +39,8 @@ to specify most drawing parameters.
 3. Copy `tikzlibraryipe.code.tex` somewhere LaTeX can find it, e.g. the same
    directory as the LaTeX file you're trying to compile.
 
-I have only tested this with ipe versions 7.2.?, on Linux and Macs.  You can
-file a bug report if it doesn't work on your system or ipe version, but I
+I have only tested this with Ipe versions 7.2.?, on Linux and Macs.  You can
+file a bug report if it doesn't work on your system or Ipe version, but I
 probably won't know how to fix it unless you include a patch or pull request.
 
 
@@ -56,10 +56,10 @@ use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
   to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
 
 + *Export stylesheet:* if this is checked, the exporter makes a TikZ version of
-  your ipe stylesheet cascade (see [below](#using-ipes-styles)).
+  your Ipe stylesheet cascade (see [below](#using-ipes-styles)).
 
 + *Export colors:* if this is checked, the exporter generates `\definecolor`
-  commands for all colors defined in your ipe stylesheets.
+  commands for all colors defined in your Ipe stylesheets.
 
 + *Export scope instead of tikzpicture:* if this is checked, the generator puts
   TikZ code inside a `scope` environment instead of a `tikzpicture` environment.
@@ -71,35 +71,48 @@ use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
 + *Output file:* this is where the TikZ code goes.
 
 Before you start, you should choose whether you want to primarily use TikZ's
-styles or ipe's styles.
+styles or Ipe's styles.
 
 ### Using TikZ's styles
 
-Use TikZ's styles if you want to make a sketch in ipe, but do most of the work
-in TikZ.  In this case, you want ipe's styles to reflect TikZ's styles as
+Use TikZ's styles if you want to make a sketch in Ipe, but do most of the work
+in TikZ.  In this case, you want Ipe's styles to reflect TikZ's styles as
 closely as possible: for instance, the pen widths should be `very thin`, `thin`,
 `thick`, etc., arrows should include `Computer Modern Rightarrow` and `Stealth`,
 and so on.  To do this, use `tikz.isy` *instead of* the `basic.isy` stylesheet,
 and un-check *Export stylesheet* in the ipelet dialog.  Be sure to include the
-TikZ libraries `arrows.meta` and `patterns`, and the provided library `ipe` (in
-`tikzlibraryipe.code.tex`).  The latter defines a style `ipe import`, which
-should be executed in any `tikzpicture` (or `scope`) using exported ipe code.
+TikZ libraries `arrows.meta` and `patterns`, and the provided library `ipe`
+(i.e. `tikzlibraryipe.code.tex`).  The latter defines a style `ipe
+import`, which should be executed in any `tikzpicture` (or `scope`) using
+exported Ipe code.
 
-### Using ipe's styles
+### Using Ipe's styles
 
-Use ipe's styles if (a) you are more comfortable with ipe's styles than TikZ's,
-and (b) you want to do most of the drawing in ipe, then tweak it in TikZ
+Use Ipe's styles if (a) you are more comfortable with Ipe's styles than TikZ's,
+and (b) you want to do most of the drawing in Ipe, then tweak it in TikZ
 afterwards.  To do this, check *Export stylesheet* in the ipelet dialog.  This
 mode has the additional effect of adding an `ipe ...` prefix to many style
 names: for instance, the `heavier` pen becomes `ipe pen heavier` in TikZ.  This
-means that, if you have an ipe pen width named `thick`, it will be exported to
+means that, if you have an Ipe pen width named `thick`, it will be exported to
 `ipe pen thick`, and all `thick` paths will reference `ipe pen thick`.  This is
 probably what you want to happen, but it does mean that you can't make a path
 that uses TikZ's native `thick` style when *Export Stylesheets* is checked.
 
+The stylesheet cascade is exported into a TikZ style called `ipe stylesheet`.
+Among other things, this style contains:
+
++ The `ipe import` style.
+
++ Settings for the fill rule, line join, and line cap.
+
++ Styles for the pen width, dash styles, and opacity styles.
+
++ Settings to alias the `>` arrow tip to Ipe's `normal` arrow.
+
+
 ## What it Does
 
-The best way to get a feel for what the exporter does is to doodle in ipe and
+The best way to get a feel for what the exporter does is to doodle in Ipe and
 see what TikZ code is produced.  The ipelet code also has a lot of comments, if
 you want to dig for details.  In summary:
 
@@ -122,12 +135,12 @@ you want to dig for details.  In summary:
 
 ### Coordinate transformations
 
-Objects in ipe may have coordinate transformations applied to them.  In order to
+Objects in Ipe may have coordinate transformations applied to them.  In order to
 produce readable TikZ code, these are handled as follows.
 
 + If the transformation is just a translation, it is absorbed into any path
   coordinates.  This is the only reasonable thing to do, since any time you
-  translate an object in ipe, you are actually updating the transformation
+  translate an object in Ipe, you are actually updating the transformation
   matrix.
 
 + For path objects and group, if the transformation has a nontrivial linear
@@ -135,7 +148,7 @@ produce readable TikZ code, these are handled as follows.
   `rotate=` and `scale=` options to the path.
 
 + In this case, however, it's not clear what the origin of the transformation
-  should be: in ipe, this is the origin of the paper at the time the object was
+  should be: in Ipe, this is the origin of the paper at the time the object was
   created, which doesn't make much sense in code meant to be read by humans.
   For path objects, use the first mentioned coordinate as the origin.  For group
   objects, I don't see any better origin to use: rotating and scaling group
@@ -153,7 +166,7 @@ TikZ as styles.
 
 ### The TikZ stylesheet `tikz.isy`
 
-This file makes ipe use TikZ's styles for almost everything it can draw.  Among
+This file makes Ipe use TikZ's styles for almost everything it can draw.  Among
 other things, this file contains:
 
 + Color definitions for the built-in colors from `xcolor`.
@@ -164,35 +177,36 @@ other things, this file contains:
 
 + TikZ's built-in fill patterns, used for tilings.
 
-+ Definitions of ipe's standard mark/reference shapes.  (TikZ has no analogue
++ Definitions of Ipe's standard mark/reference shapes.  (TikZ has no analogue
   to use.)
 
-+ Definitions of some of TikZ's standard arrows, so ipe knows how to draw them.
-  Since TikZ's arrow facility is much more sophisticated than ipe's, 
-  exported TikZ arrows will not look quite the same as they did in ipe.
++ Definitions of some of TikZ's standard arrows, so Ipe knows how to draw them.
+  Since TikZ's arrow facility is much more sophisticated than Ipe's, 
+  exported TikZ arrows will not look quite the same as they did in Ipe.
 
 + Ipe's usual `textsize` definitions.
  
-### The ipe compatibility library `tikzlibraryipe.code.tex`
+### The Ipe compatibility library `tikzlibraryipe.code.tex`
 
 This file is the TikZ glue code that complements the exporter.  This file
 essentially consists of the `ipe import` style, which contains (among other
 things):
 
-+ The definitions `x=1bp` and `y=1bp`.  The basic unit in ipe is the PDF point
++ The definitions `x=1bp` and `y=1bp`.  The basic unit in Ipe is the PDF point
   (1/72 of an inch), which in LaTeX is a "big point" (as opposed to a "Knuth
   point", which is slightly smaller).  If the exported code is to be readable,
-  it had better use ipe's basic unit.
+  it had better use Ipe's basic unit.
 
 + Definition of the `ipe node` style, which sets the default anchor and removes
   inner and outer separation.
 
-+ Arrow tip definitions for ipe's arrows.  Ipe's arrows look like certain
++ Arrow tip definitions for Ipe's arrows.  Ipe's arrows look like certain
   standard TikZ arrows, but they behave rather differently with respect to line
   width, tip position, join style, etc.  The arrows defined in the `ipe` library
-  behave almost exactly like ipe's arrows.
+  behave almost exactly like Ipe's arrows.
 
-+ Definitions of ipe's marks (`circle`, `disk`, etc.) as TikZ `pic` commands.
++ Definitions of Ipe's marks (`circle`, `disk`, etc.) as TikZ `pic` commands.
+
  
 ## Limitations
 
@@ -201,28 +215,28 @@ things):
   implemented within PGF/TikZ.
 
 + Exporting bitmapped images is not supported.  You can use `\includegraphics`
-  within a text object in ipe (after putting `\usepackage{graphicx}` in the
-  preamble); the image will not display in ipe, but it should appear after
+  within a text object in Ipe (after putting `\usepackage{graphicx}` in the
+  preamble); the image will not display in Ipe, but it should appear after
   compiling the exported code.
 
 + Only the current page, and the first view on that page, are exported.
 
 + The exporter won't export symbols (marks and arrows) from stylesheets; these
-  have to be defined by hand in a TikZ style.  Note however that ipe's standard
+  have to be defined by hand in a TikZ style.  Note however that Ipe's standard
   marks and arrows are already defined in `tikzlibraryipe.code.tex`.
 
 + The exporter won't export tilings / fill patterns from stylesheets either;
   these must also be done by hand.  It requires a bit of work to define a new
   fill pattern in TikZ.  For this reason, only the fill patterns that are
-  predefined in TikZ and which can also be drawn by ipe are defined in
+  predefined in TikZ and which can also be drawn by Ipe are defined in
   `tikz.isy`.
 
 + When in *Export complete document* mode, the size of the paper in LaTeX is set
-  to the size of the paper in ipe.  However, ipe also sets PDF's `ArtBox` and
+  to the size of the paper in Ipe.  However, Ipe also sets PDF's `ArtBox` and
   (optionally) `CropBox` to the bounding box of the image.  The exporter does
   not do that, as TikZ/PGF has no such facility, these being PDF-specific
   features.  The result is that your PDF reader may display a PDF exported
-  directly from ipe on a smaller canvas than when it is exported through TikZ
+  directly from Ipe on a smaller canvas than when it is exported through TikZ
   first.
 
 + Some colors may look different after compiling LaTeX unless you put
