@@ -109,6 +109,9 @@ Among other things, this style contains:
 
 + Settings to alias the `>` arrow tip to Ipe's `normal` arrow.
 
+The style does *not* contain settings for marks, arrows, tilings, and some
+others: see [limitations](#limitations) below.
+
 
 ## What it Does
 
@@ -119,19 +122,17 @@ you want to dig for details.  In summary:
 + Path objects are exported to usual TikZ paths, created with `\draw` or `\fill`
   or `\filldraw`.  These may contain path-to `--` commands, `arc` commands, and
   curve-to `..` commands, as well as `rectangle`, `ellipse`, and `circle`
-  commands.
+  commands.  Composed paths are concatenated by move-to (empty) commands.
 
 + Text objects are exported to TikZ nodes, with the `ipe node` style.
 
-+ Group objects are exported to TikZ scopes.  The clipping path, if any, becomes
-  a `\clip` path in the scope.
++ Group objects are exported to TikZ scopes.  The clipping path, if it exists,
+  becomes a `\clip` path in the scope.
 
 + Reference objects (marks) are exported to TikZ `\pic` commands.
 
 + If configured to do so, the stylesheet cascade is exported to a TikZ style
   called `ipe stylesheet`.
-
-+ Tilings are exported to fill patterns (which must be defined by hand in TikZ).
 
 ### Coordinate transformations
 
@@ -143,42 +144,43 @@ produce readable TikZ code, these are handled as follows.
   translate an object in Ipe, you are actually updating the transformation
   matrix.
 
-+ For path objects and group, if the transformation has a nontrivial linear
-  part, then try to decompose it as a rotation and a scale.  If that works, add
-  `rotate=` and `scale=` options to the path.
-
-+ In this case, however, it's not clear what the origin of the transformation
-  should be: in Ipe, this is the origin of the paper at the time the object was
-  created, which doesn't make much sense in code meant to be read by humans.
-  For path objects, use the first mentioned coordinate as the origin.  For group
-  objects, I don't see any better origin to use: rotating and scaling group
-  objects will produce somewhat funny-looking code.
++ For path, group, and text objects, if the transformation has a nontrivial
+  linear part, then try to decompose it as a rotation and a scale.  If that
+  works, add `rotate=` and `scale=` options to the path.
 
 + If the decomposition didn't work, use TikZ's `cm=` option to pass the
   coordinate matrix directly.
 
++ In either case, it's not always clear what point to use as the origin in the
+  transformation: in Ipe, this is the origin of the paper at the time the object
+  was created, which doesn't make much sense in code meant to be read by humans.
+  For path objects, the exporter uses the first mentioned coordinate as the
+  origin.  For group objects, I don't see any better origin to use: rotating and
+  scaling group objects will produce somewhat funny-looking code.  Text objects
+  have a well-defined "position", so that is used as the origin.
+
 ### Styles and options
 
 Most options are exported symbolically, hopefully in the way one would expect.
-Some are exported as numbers or RGB colors, if necessary.  Note that, if not
+Some are exported as numbers or RGB triples, if necessary.  Note that, if not
 using *Export stylesheet*, then all exported symbols must already be known to
 TikZ as styles.
 
 ### The TikZ stylesheet `tikz.isy`
 
-This file makes Ipe use TikZ's styles for almost everything it can draw.  Among
-other things, this file contains:
+This file teaches Ipe to use TikZ's styles for almost everything it can draw.
+Among other things, this file contains:
 
 + Color definitions for the built-in colors from `xcolor`.
 
-+ The TikZ default cap, join, and fill rules.
++ The TikZ default line cap, join, and fill rules.
 
 + TikZ's pen widths, dash styles, and opacity styles.
 
 + TikZ's built-in fill patterns, used for tilings.
 
 + Definitions of Ipe's standard mark/reference shapes.  (TikZ has no analogue
-  to use.)
+  to use instead.)
 
 + Definitions of some of TikZ's standard arrows, so Ipe knows how to draw them.
   Since TikZ's arrow facility is much more sophisticated than Ipe's, 
@@ -188,9 +190,8 @@ other things, this file contains:
  
 ### The Ipe compatibility library `tikzlibraryipe.code.tex`
 
-This file is the TikZ glue code that complements the exporter.  This file
-essentially consists of the `ipe import` style, which contains (among other
-things):
+This file is the TikZ glue that complements the exporter.  This file essentially
+consists of the `ipe import` style, which contains (among other things):
 
 + The definitions `x=1bp` and `y=1bp`.  The basic unit in Ipe is the PDF point
   (1/72 of an inch), which in LaTeX is a "big point" (as opposed to a "Knuth
@@ -200,10 +201,11 @@ things):
 + Definition of the `ipe node` style, which sets the default anchor and removes
   inner and outer separation.
 
-+ Arrow tip definitions for Ipe's arrows.  Ipe's arrows look like certain
-  standard TikZ arrows, but they behave rather differently with respect to line
-  width, tip position, join style, etc.  The arrows defined in the `ipe` library
-  behave almost exactly like Ipe's arrows.
++ Arrow tip definitions for Ipe's arrows.  Ipe's arrows already look like
+  certain standard TikZ arrows (`Stealth`, `Triangle`, etc.), but they behave
+  rather differently with respect to line width, tip position, join style, etc.
+  The arrows defined in the `ipe` library behave almost exactly like Ipe's
+  arrows.
 
 + Definitions of Ipe's marks (`circle`, `disk`, etc.) as TikZ `pic` commands.
 
@@ -211,8 +213,8 @@ things):
 ## Limitations
 
 + Exporting gradients and effects is not supported.  Gradients could in theory
-  be exported if someone wanted to code it.  Effects probably cannot be
-  implemented within PGF/TikZ.
+  be exported as shades, if someone wanted to code it.  Effects probably cannot
+  be implemented within PGF/TikZ.
 
 + Exporting bitmapped images is not supported.  You can use `\includegraphics`
   within a text object in Ipe (after putting `\usepackage{graphicx}` in the
@@ -246,3 +248,7 @@ things):
 + The `textstretch` attribute of text objects is not currently available to
   ipelets.  Text using `textstretch` may not export at the correct scaling
   factor.
+
++ TikZ's math is done by TeX, so it suffers from some inaccuracy, and all
+  numbers have to be kept rather small.  Crazy coordinate transformations may
+  push the limits of what it can do.
