@@ -248,10 +248,6 @@ consists of the `ipe import` style, which contains (among other things):
   file.  (This happens, for instance, when using symbolic colors defined by
   `xcolor` in cmyk, and defined in `tikz.isy` or another stylesheet in rgb.)
 
-+ The `textstretch` attribute of text objects is not currently available to
-  ipelets.  Text using `textstretch` may not export at the correct scaling
-  factor.
-
 + TikZ's math is done by TeX, so it suffers from some inaccuracy, and all
   numbers have to be kept rather small.  Crazy coordinate transformations may
   push the limits of what it can do.
