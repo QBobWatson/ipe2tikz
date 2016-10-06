@@ -56,7 +56,8 @@ use the shortcut `Ctrl-Shift-T`.  A dialog appears, with the following options:
   to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
 
 + *Export stylesheet:* if this is checked, the exporter makes a TikZ version of
-  your Ipe stylesheet cascade (see [below](#using-ipes-styles)).
+  the effective styles as determined by the Ipe stylesheet cascade (see 
+  [below](#using-ipes-styles)), except for colors.
 
 + *Export colors:* if this is checked, the exporter generates `\definecolor`
   commands for all colors defined in your Ipe stylesheets.
@@ -82,7 +83,7 @@ closely as possible: for instance, the pen widths should be `very thin`, `thin`,
 and so on.  To do this, use `tikz.isy` *instead of* the `basic.isy` stylesheet,
 and un-check *Export stylesheet* in the ipelet dialog.  Be sure to include the
 TikZ libraries `arrows.meta` and `patterns`, and the provided library `ipe`
-(i.e. `tikzlibraryipe.code.tex`).  The latter defines a style `ipe
+(i.e. `tikzlibraryipe.code.tex`) in your LaTeX code.  The latter defines a style `ipe
 import`, which should be executed in any `tikzpicture` (or `scope`) using
 exported Ipe code.
 
@@ -105,7 +106,7 @@ Among other things, this style contains:
 
 + Settings for the fill rule, line join, and line cap.
 
-+ Styles for the pen width, dash styles, and opacity styles.
++ Settings for the pen width, dash styles, and opacity styles.
 
 + Settings to alias the `>` arrow tip to Ipe's `normal` arrow.
 
@@ -156,7 +157,8 @@ produce readable TikZ code, these are handled as follows.
   was created, which doesn't make much sense in code meant to be read by humans.
   For path objects, the exporter uses the first mentioned coordinate as the
   origin.  For group objects, I don't see any better origin to use: rotating and
-  scaling group objects will produce somewhat funny-looking code.  Text objects
+  scaling group objects will produce somewhat funny-looking code, unless you are 
+  careful to create the group object near the origin.  Text objects
   have a well-defined "position", so that is used as the origin.
 
 ### Styles and options
@@ -164,7 +166,7 @@ produce readable TikZ code, these are handled as follows.
 Most options are exported symbolically, hopefully in the way one would expect.
 Some are exported as numbers or RGB triples, if necessary.  Note that, if not
 using *Export stylesheet*, then all exported symbols must already be known to
-TikZ as styles.
+TikZ as keys.
 
 ### The TikZ stylesheet `tikz.isy`
 
@@ -217,9 +219,9 @@ consists of the `ipe import` style, which contains (among other things):
   be implemented within PGF/TikZ.
 
 + Exporting bitmapped images is not supported.  You can use `\includegraphics`
-  within a text object in Ipe (after putting `\usepackage{graphicx}` in the
-  preamble); the image will not display in Ipe, but it should appear after
-  compiling the exported code.
+  within a text object in Ipe, after putting `\usepackage{graphicx}` in the
+  preamble.  The image will display in Ipe (if you have a recent enough version), 
+  and it should appear after compiling the exported code.
 
 + Only the current page, and the first view on that page, are exported.
 
@@ -237,13 +239,14 @@ consists of the `ipe import` style, which contains (among other things):
   to the size of the paper in Ipe.  However, Ipe also sets PDF's `ArtBox` and
   (optionally) `CropBox` to the bounding box of the image.  The exporter does
   not do that, as TikZ/PGF has no such facility, these being PDF-specific
-  features.  The result is that your PDF reader may display a PDF exported
+  features.  The result is that your PDF reader may display a PDF saved
   directly from Ipe on a smaller canvas than when it is exported through TikZ
   first.
 
 + Some colors may look different after compiling LaTeX unless you put
   `\PassOptionsToPackage{rgb}{xcolor}` before `\documentclass` in your LaTeX
-  file.  (The default color space used by `xcolor` is `cmyk`.)
+  file.  (This happens, for instance, when using symbolic colors defined by
+  `xcolor` in cmyk, and defined in `tikz.isy` or another stylesheet in rgb.)
 
 + The `textstretch` attribute of text objects is not currently available to
   ipelets.  Text using `textstretch` may not export at the correct scaling
