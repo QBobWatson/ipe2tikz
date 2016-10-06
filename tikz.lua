@@ -22,7 +22,6 @@
 
 --]]
 
--- TODO: feature request: textstretch attribute of objects in lua
 
 label = "TikZ export"
 
@@ -602,8 +601,8 @@ end
 -- width attribute (which is ignored otherwise).  The horizontal and vertical
 -- alignment attributes specify the anchor for the node.
 --
--- Relevant attributes: stroke, textsize, opacity, textstretch, textstyle,
---   minipage, width, horizontalalignment, verticalalignment
+-- Relevant attributes: stroke, textsize, opacity, textstyle, minipage, width,
+--   horizontalalignment, verticalalignment
 function export_text(model, obj, matrix)
    local text = obj:text()
    local anchor
@@ -664,22 +663,22 @@ function export_text(model, obj, matrix)
    end
 
    -- text size
-   local textsize = obj:get("textsize")
+   local textsizesym = obj:get("textsize")
    local setsize = ""
    local minipage = obj:get("minipage")
-   if textsize ~= "normal" then
-      if is_number(textsize) then
+   if textsizesym ~= "normal" then
+      if is_number(textsizesym) then
          if minipage then
             -- Need to set font *inside* the minipage
             setsize = string.format(
                "\\fontsize{%s}{%sbp}\\selectfont",
-               textsize, textsize*1.2)
+               textsizesym, textsizesym*1.2)
          else
-            table.insert(options, "font size pt=" .. textsize
-                            .. "/" .. (textsize*1.2))
+            table.insert(options, "font size pt=" .. textsizesym
+                            .. "/" .. (textsizesym*1.2))
          end
       else
-         textsize = model.doc:sheets():find("textsize", textsize)
+         textsize = model.doc:sheets():find("textsize", textsizesym)
          if minipage then
             -- Need to set font *inside* the minipage
             setsize = textsize
@@ -690,9 +689,21 @@ function export_text(model, obj, matrix)
    end
 
    -- textstretch
-   -- TODO: enable once this is accessible from lua
-   -- number_option(obj:get("textstretch"), "ipe node stretch",
-   --                 options, "ipe stretch ")
+   -- This uses the same key as textsize, if textsize is a symbol.  But we won't
+   -- bother adding a scaling factor option unless the textstretch is different
+   -- from the normal textstretch (which might be ~= 1)
+   local normalstretchnum = model.doc:sheets():find("textstretch", "normal")
+   local textstretchnum = normalstretchnum
+   if not is_number(textsizesym) then
+      if not _G.pcall(function()
+            textstretchnum
+               = model.doc:sheets():find("textstretch", textsizesym) end) then
+         textstretchnum = normalstretchnum
+      end
+   end
+   if textstretchnum ~= normalstretchnum then
+      table.insert(options, "ipe stretch " .. textsizesym)
+   end
 
    -- textstyle
    local textstyle = obj:get("textstyle")
@@ -730,19 +741,9 @@ function export_text(model, obj, matrix)
       local old_indent = indent
       indent = indent .. indent_amt .. indent_amt .. " "
       write("{\n")
-      -- Stretch the dimension (in LaTeX) if using textstretch
-      -- TODO: enable once this is available from lua
-      -- local textstretch = obj:get("textstretch")
-      local textstretch = "normal"
-      local textstretchnum
-      if is_number(textstretch) then
-         textstretchnum = textstretch
-      else
-         textstretchnum = model.doc:sheets():find("textstretch", textstretch)
-      end
       -- The \kern0pt is to cancel out \ignorespaces in the \begin{minipage},
       -- which seems to be what happens when ipe runs LaTeX.
-      if textstretchnum ~= 1 or textstretch ~= "normal" then
+      if textstretchnum ~= 1 then
          write(indent .. string.format(
                   "\\ipestretchwidth{%sbp}\n", sround(obj:get("width"))))
          write(indent .. "\\begin{minipage}{\\ipeminipagewidth}"
