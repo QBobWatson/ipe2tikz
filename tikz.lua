@@ -703,9 +703,10 @@ function export_text(model, obj, matrix)
    -- from the normal textstretch (which might be ~= 1)
    local textstretchnum = normalstretchnum
    if not is_number(textsizesym) then
-      if not _G.pcall(function()
-            textstretchnum
-               = model.doc:sheets():find("textstretch", textsizesym) end) then
+      local res
+      res, textstretchnum
+         = _G.pcall(model.doc:sheets():find("textstretch", textsizesym))
+      if not res then
          textstretchnum = normalstretchnum
       end
    end
@@ -1304,6 +1305,12 @@ function export_object(model, obj)
          local angle = ipe.Vector(x, y):angle()
          matrix = ipe.Translation(matrix:translation()) * ipe.Rotation(angle)
       end
+   end
+
+   -- If a coordinate system is set and we're not in fulldoc mode, use the
+   -- origin of the coordinate system as TikZ's origin.
+   if not dialog_state.fulldoc and model.snap.with_axes then
+      matrix = ipe.Translation(-model.snap.origin) * matrix
    end
 
    if obj:type() == "path" then

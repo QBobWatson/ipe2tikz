@@ -161,6 +161,9 @@ produce readable TikZ code, these are handled as follows.
   careful to create the group object near the origin.  Text objects
   have a well-defined "position", so that is used as the origin.
 
++ If coordinate axes have been defined and *Export complete document* is unset,
+  the origin for the coordinate system will be used as TikZ's origin.
+
 ### Styles and options
 
 Most options are exported symbolically, hopefully in the way one would expect.
