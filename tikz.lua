@@ -23,6 +23,9 @@
 --]]
 
 
+-- TODO: select objects, create TikZ, export to text object and delete
+--   originals.
+
 label = "TikZ export"
 
 about = "Export readable TikZ code"
@@ -666,6 +669,7 @@ function export_text(model, obj, matrix)
    local textsizesym = obj:get("textsize")
    local setsize = ""
    local minipage = obj:get("minipage")
+   local normalstretchnum = model.doc:sheets():find("textstretch", "normal")
    if textsizesym ~= "normal" then
       if is_number(textsizesym) then
          if minipage then
@@ -676,6 +680,11 @@ function export_text(model, obj, matrix)
          else
             table.insert(options, "font size pt=" .. textsizesym
                             .. "/" .. (textsizesym*1.2))
+         end
+         -- In this case, use no text stretch
+         if normalstretchnum ~= 1 then
+            table.insert(options, "ipe node stretch=1")
+            normalstretchnum = 1 -- hack to skip \ipeminipagewidth
          end
       else
          textsize = model.doc:sheets():find("textsize", textsizesym)
@@ -692,7 +701,6 @@ function export_text(model, obj, matrix)
    -- This uses the same key as textsize, if textsize is a symbol.  But we won't
    -- bother adding a scaling factor option unless the textstretch is different
    -- from the normal textstretch (which might be ~= 1)
-   local normalstretchnum = model.doc:sheets():find("textstretch", "normal")
    local textstretchnum = normalstretchnum
    if not is_number(textsizesym) then
       if not _G.pcall(function()
@@ -712,7 +720,7 @@ function export_text(model, obj, matrix)
       -- val is a \0-separated pair of strings
       local beginstr, endstr
       _, _, beginstr, endstr = string.find(val, "^(.*)\0(.*)$")
-      text = beginstr .. "\n" .. text .. "\n" .. endstr .. "\n"
+      text = beginstr .. text .. endstr
    end
 
    -- color
