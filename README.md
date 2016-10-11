@@ -45,7 +45,7 @@ probably won't know how to fix it unless you include a patch or pull request.
 ## Usage
 
 This ipelet supports exporting the current view to a TeX file, or replacing the
-selected objects by a text box containing the TikZ code used to produce those
+selected objects by a text box containing TikZ code that reproduces those
 objects.
 
 Before you start, you should choose whether you want to primarily use TikZ's
@@ -64,7 +64,7 @@ TikZ libraries `arrows.meta` and `patterns`, and the provided library `ipe`
 import`, which should be executed in any `tikzpicture` (or `scope`) using
 exported Ipe code.
 
-In this mode, all symbols must already be known to TikZ as keys.
+In this mode, all Ipe symbols you use must already be known to TikZ as keys.
 
 ### Using Ipe's styles
 
@@ -81,7 +81,7 @@ that uses TikZ's native `thick` style when *Export Stylesheets* is checked.
 The stylesheet cascade is exported into a TikZ style called `ipe stylesheet`.
 Among other things, this style contains:
 
-+ The `ipe import` style.
++ The `ipe import` key.
 + Settings for the fill rule, line join, and line cap.
 + Settings for the pen width, dash styles, and opacity styles.
 + Settings to alias the `>` arrow tip to Ipe's `normal` arrow.
@@ -98,15 +98,15 @@ reproduce the current view on the current page.  This is suitable for
 Select *Export to File* from the *TikZ Export* submenu in the ipelets menu, or
 use the shortcut `Alt+T`.  A dialog appears, with the following options:
 
-+ *Export complete document:* if this is checked, the exporter makes a document
++ *Export complete document:* if this is checked, the ipelet makes a document
   that can be compiled standalone.  That is, it generates a preamble,
   `\begin{document}...\end{document}` tags, etc.  If you want to `\input` the
   output file into another LaTeX file, un-check this option.  In that case, be sure
   to set `\usetikzlibrary{arrows.meta,patterns,ipe}` somewhere.
-+ *Export stylesheet:* if this is checked, the exporter makes a TikZ version of
++ *Export stylesheet:* if this is checked, the ipelet makes a TikZ version of
   the effective styles as determined by the Ipe stylesheet cascade (see 
   [above](#using-ipes-styles)), except for colors.
-+ *Export colors:* if this is checked, the exporter generates `\definecolor`
++ *Export colors:* if this is checked, the ipelet generates `\definecolor`
   commands for all colors defined in your Ipe stylesheets.
 + *Export scope instead of tikzpicture:* if this is checked, the generator puts
   TikZ code inside a `scope` environment instead of a `tikzpicture` environment.
@@ -115,7 +115,7 @@ use the shortcut `Alt+T`.  A dialog appears, with the following options:
   the `\input` in another `scope`.)  This option is disabled if *Export complete
   document* is checked.
 + *Export grid:* if desired, you can export Ipe's grid as well.  This is useful
-  for debugging placement.
+  for debugging the placement of objects.
 + *Output file:* this is where the TikZ code goes.
 
 If *Export complete document* is unchecked and a coordinate system is defined,
@@ -124,7 +124,7 @@ the origin of the coordinate system becomes TikZ's origin.
 ### Exporting to a text box
 
 In this mode, the user selects some number of objects, and the ipelet replaces
-them by a text box containing the TikZ code to reproduce those objects.  This is
+them by a text box containing TikZ code to reproduce those objects.  This is
 useful for the following kind of workflow:
 
 1. Create a quick picture in Ipe.
@@ -139,7 +139,7 @@ For this to work, you must have Ipe 7.2.6+ installed, and you need to put
 
 To use, first select the objects you want to convert to TikZ.  Select *Export to
 Text Object* from the *TikZ Export* submenu in the ipelets menu, or use the
-shortcut `Ctrl+Shift+T`.  A dialog appears, with one optionu:
+shortcut `Ctrl+Shift+T`.  A dialog appears, with one option:
 
 + *Use TikZ styles:* this is the opposite of the *Export stylesheet* option in
   the file export dialog.  If unchecked, the ipelet will produce a TikZ style
@@ -153,11 +153,11 @@ After clicking *Ok*, the following things happen:
 2. The ipelet creates a style sheet called `TikZ-export`, which contains the
    necessary preamble material to compile the TikZ code in the text box.  This
    includes the TikZ style, if *Use TikZ styles* is not checked.
-3. The ipelet creates a text box and populates it with the suitable TikZ code.
-   The position of the text box is TikZ's origin.  By default, the position of
-   the text box is the lower-left corner of the bounding box of the selected
-   objects, but if you have defined a coordinate system, it will use the origin
-   of the coordinate system instead.
+3. The ipelet creates a text box and populates it with the generated TikZ code.
+   The position (reference point) of the text box is TikZ's origin.  By default,
+   the position of the text box is the lower-left corner of the bounding box of
+   the selected objects, but if you have defined a coordinate system, the
+   ipelet will use the origin of the coordinate system instead.
 
 ## What it Does
 
@@ -187,26 +187,24 @@ produce readable TikZ code, these are handled as follows.
   matrix.
 + For path, group, and text objects, if the transformation has a nontrivial
   linear part, then try to decompose it as a rotation and a scale.  If that
-  works, add `rotate=` and `scale=` options to the path.
+  works, add `rotate=` and `scale=` options to the path.  (Marks only have
+  translations in their coordinate transformations.)
 + If the decomposition didn't work, use TikZ's `cm=` option to pass the
   coordinate matrix directly.
-+ In either case, it's not always clear what point to use as the origin in the
-  transformation: in Ipe, this is the origin of the paper at the time the object
-  was created, which doesn't make much sense in code meant to be read by humans.
-  For path objects, the exporter uses the first mentioned coordinate as the
-  origin.  For group objects, I don't see any better origin to use: rotating and
-  scaling group objects will produce somewhat funny-looking code, unless you are 
-  careful to create the group object near the origin.  Text objects
-  have a well-defined "position", so that is used as the origin.
-+ If coordinate axes have been defined and *Export complete document* is unset,
-  the origin for the coordinate system will be used as TikZ's origin.
++ In either of the above two cases, it's not always clear what point to use as
+  the origin in the transformation: in Ipe, this is the origin of the paper at
+  the time the object was created, which doesn't make much sense in code meant
+  to be read by humans.  For path objects, the ipelet uses the first mentioned
+  coordinate as the origin.  For group objects, I don't see any better origin to
+  use: rotating and scaling group objects will produce somewhat funny-looking
+  code, unless you are careful to create the group object near the origin.  Text
+  objects have a well-defined "position", so that is used as the origin.
 
 ### Styles and options
 
 Most options are exported symbolically, hopefully in the way one would expect.
-Some are exported as numbers or RGB triples, if necessary.  Note that, if not
-using *Export stylesheet*, then all exported symbols must already be known to
-TikZ as keys.
+Some are exported as numbers or RGB triples, if necessary.  If not using *Export
+stylesheet*, then all exported symbols must already be known to TikZ as keys.
 
 ### The TikZ stylesheet `tikz.isy`
 
@@ -216,7 +214,7 @@ Among other things, this file contains:
 + Color definitions for the built-in colors from `xcolor`.
 + The TikZ default line cap, join, and fill rules.
 + TikZ's pen widths, dash styles, and opacity styles.
-+ TikZ's built-in fill patterns, used for tilings.
++ Some of TikZ's built-in fill patterns, used for tilings.
 + Definitions of Ipe's standard mark/reference shapes.  (TikZ has no analogue
   to use instead.)
 + Definitions of some of TikZ's standard arrows, so Ipe knows how to draw them.
@@ -226,15 +224,15 @@ Among other things, this file contains:
  
 ### The Ipe compatibility library `tikzlibraryipe.code.tex`
 
-This file is the TikZ glue that complements the exporter.  This file essentially
+This file is the TikZ glue that complements the ipelet.  This file essentially
 consists of the `ipe import` style, which contains (among other things):
 
 + The definitions `x=1bp` and `y=1bp`.  The basic unit in Ipe is the PDF point
   (1/72 of an inch), which in LaTeX is a "big point" (as opposed to a "Knuth
   point", which is slightly smaller).  If the exported code is to be readable,
   it had better use Ipe's basic unit.
-+ Definition of the `ipe node` style, which sets the default anchor and removes
-  inner and outer separation.
++ The definition of the `ipe node` style, which sets the default anchor and
+  scale factor, and removes inner and outer separation.
 + Arrow tip definitions for Ipe's arrows.  Ipe's arrows already look like
   certain standard TikZ arrows (`Stealth`, `Triangle`, etc.), but they behave
   rather differently with respect to line width, tip position, join style, etc.
@@ -253,17 +251,17 @@ consists of the `ipe import` style, which contains (among other things):
   preamble.  The image will display in Ipe (if you have a recent enough version), 
   and it should appear after compiling the exported code.
 + Only the current page, and the current view on that page, are exported.
-+ The exporter won't export symbols (marks and arrows) from stylesheets; these
++ The ipelet won't export symbols (marks and arrows) from stylesheets; these
   have to be defined by hand in a TikZ style.  Note however that Ipe's standard
   marks and arrows are already defined in `tikzlibraryipe.code.tex`.
-+ The exporter won't export tilings / fill patterns from stylesheets either;
++ The ipelet won't export tilings / fill patterns from stylesheets either;
   these must also be done by hand.  It requires a bit of work to define a new
   fill pattern in TikZ.  For this reason, only the fill patterns that are
   predefined in TikZ and which can also be drawn by Ipe are defined in
   `tikz.isy`.
 + When in *Export complete document* mode, the size of the paper in LaTeX is set
   to the size of the paper in Ipe.  However, Ipe also sets PDF's `ArtBox` and
-  (optionally) `CropBox` to the bounding box of the image.  The exporter does
+  (optionally) `CropBox` to the bounding box of the image.  The ipelet does
   not do that, as TikZ/PGF has no such facility, these being PDF-specific
   features.  The result is that your PDF reader may display a PDF saved
   directly from Ipe on a smaller canvas than when it is exported through TikZ
