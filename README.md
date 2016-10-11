@@ -44,9 +44,9 @@ probably won't know how to fix it unless you include a patch or pull request.
 
 ## Usage
 
-This ipelet supports exporting TikZ code for the current view on the current
-page to a file, or replacing the selected objects by a text box containing the
-TikZ code used to produce those objects.
+This ipelet supports exporting the current view to a TeX file, or replacing the
+selected objects by a text box containing the TikZ code used to produce those
+objects.
 
 Before you start, you should choose whether you want to primarily use TikZ's
 styles or Ipe's styles.
