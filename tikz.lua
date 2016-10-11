@@ -23,14 +23,17 @@
 --]]
 
 
--- TODO: select objects, create TikZ, export to text object and delete
---   originals.
-
 label = "TikZ export"
+
+methods = {
+   { label="Export to File", run=run },
+   { label="Export to Text Object", run=run }
+}
 
 about = "Export readable TikZ code"
 
-shortcuts.ipelet_1_tikz = "Ctrl+Shift+T"
+shortcuts.ipelet_1_tikz = "Alt+T"
+shortcuts.ipelet_2_tikz = "Ctrl+Shift+T"
 
 -- Globals
 write = _G.io.write
@@ -116,6 +119,17 @@ end
 -- So I have to use a regex.
 function is_number(str)
    return (string.find(str, "^[-+]?%d*%.?%d*$") ~= nil)
+end
+
+
+-- Calculate a bounding box for selected, visible objects
+function bounding_box(model)
+   local page = model:page()
+   local box = ipe.Rect()
+   for i,obj,sel,layer in page:objects() do
+      if page:visible(model.vno, i) and sel then box:add(page:bbox(i)) end
+   end
+   return box
 end
 
 
@@ -234,7 +248,7 @@ function arrow_spec(shapes, size, forward)
          if forward then arrow = ">" else arrow = "<" end
       elseif arrow == "Bar" then
          arrow = "|"
-      elseif dialog_state.stylesheets then
+      elseif params.stylesheets then
          arrow = "ipe " .. arrow
       end
       if forward then
@@ -585,7 +599,7 @@ function export_group(model, obj, matrix)
    end
 
    for i,element in ipairs(obj:elements()) do
-      export_object(model, element)
+      export_object(model, element, ipe.Vector(0,0))
    end
    indent = old_indent
 
@@ -607,10 +621,13 @@ end
 -- Relevant attributes: stroke, textsize, opacity, textstyle, minipage, width,
 --   horizontalalignment, verticalalignment
 function export_text(model, obj, matrix)
+   local sheets = model.doc:sheets()
    local text = obj:text()
+   local minipage = obj:get("minipage")
    local anchor
    local ha = obj:get("horizontalalignment")
    local va = obj:get("verticalalignment")
+   if minipage then ha = "left" end
    if ha == "left" then
       if va == "bottom" then
          anchor = "south west"
@@ -667,9 +684,9 @@ function export_text(model, obj, matrix)
 
    -- text size
    local textsizesym = obj:get("textsize")
+   local textsize
    local setsize = ""
-   local minipage = obj:get("minipage")
-   local normalstretchnum = model.doc:sheets():find("textstretch", "normal")
+   local normalstretchnum = sheets:find("textstretch", "normal")
    if textsizesym ~= "normal" then
       if is_number(textsizesym) then
          if minipage then
@@ -687,7 +704,7 @@ function export_text(model, obj, matrix)
             normalstretchnum = 1 -- hack to skip \ipeminipagewidth
          end
       else
-         textsize = model.doc:sheets():find("textsize", textsizesym)
+         textsize = sheets:find("textsize", textsizesym)
          if minipage then
             -- Need to set font *inside* the minipage
             setsize = textsize
@@ -705,7 +722,8 @@ function export_text(model, obj, matrix)
    if not is_number(textsizesym) then
       local res
       res, textstretchnum
-         = _G.pcall(model.doc:sheets():find("textstretch", textsizesym))
+         = _G.pcall(function()
+               return sheets:find("textstretch", textsizesym) end)
       if not res then
          textstretchnum = normalstretchnum
       end
@@ -715,13 +733,31 @@ function export_text(model, obj, matrix)
    end
 
    -- textstyle
-   local textstyle = obj:get("textstyle")
-   local val = model.doc:sheets():find("textstyle", textstyle)
-   if textstyle ~= "normal" then
-      -- val is a \0-separated pair of strings
-      local beginstr, endstr
-      _, _, beginstr, endstr = string.find(val, "^(.*)\0(.*)$")
-      text = beginstr .. text .. endstr
+   local textstyle
+   local val
+   if minipage then
+      textstyle = obj:get("textstyle")
+      val = sheets:find("textstyle", textstyle)
+   else
+      local res
+      -- 7.2.6 onwards: textstyle for labels is "labelstyle"
+      res, textstyle = _G.pcall(function() return obj:get("labelstyle") end)
+      if res then
+         val = sheets:find("labelstyle", textstyle)
+      else
+         textstyle = obj:get("textstyle")
+         val = sheets:find("textstyle", textstyle)
+      end
+   end
+   -- val is a \0-separated pair of strings
+   local beginstr, endstr
+   _, _, beginstr, endstr = string.find(val, "^(.*)\0(.*)$")
+   if beginstr ~= "" or endstr ~= "" then
+      if minipage then
+         text = beginstr .. "\n" .. text .. "\n" .. endstr
+      else
+         text = beginstr .. text .. endstr
+      end
    end
 
    -- color
@@ -732,7 +768,7 @@ function export_text(model, obj, matrix)
    -- opacity is always a symbolic name in ipe
    local opacity = obj:get("opacity")
    local prepend = nil
-   if dialog_state.stylesheets then prepend = "ipe opacity " end
+   if params.stylesheets then prepend = "ipe opacity " end
    opacity = string.gsub(opacity, "%%", "") -- strip %
    if opacity ~= "opaque" then
       string_option(opacity, nil, options, prepend)
@@ -1106,14 +1142,14 @@ function export_path(shape, mode, matrix, obj)
 
          -- pen / line width
          local prepend
-         if dialog_state.stylesheets then
+         if params.stylesheets then
             prepend = "ipe pen "
          else prepend = nil
          end
          number_option(obj:get("pen"), "line width", options, prepend)
 
          -- only symbolic dash styles are supported
-         if dialog_state.stylesheets then
+         if params.stylesheets then
             prepend = "ipe dash "
          else prepend = nil
          end
@@ -1163,7 +1199,7 @@ function export_path(shape, mode, matrix, obj)
       -- opacity is always a symbolic name in ipe
       local opacity = obj:get("opacity")
       local prepend = nil
-      if dialog_state.stylesheets then prepend = "ipe opacity " end
+      if params.stylesheets then prepend = "ipe opacity " end
       opacity = string.gsub(opacity, "%%", "") -- strip %
       if opacity ~= "opaque" then
          string_option(opacity, nil, options, prepend)
@@ -1191,7 +1227,7 @@ end
 
 
 --------------------------------------------------------------------------------
--- Main function: export objects and stylesheets
+-- Export stylesheet
 --------------------------------------------------------------------------------
 
 -- stylesheet kinds: pen, symbolsize, arrowsize, color, dashstyle, textsize,
@@ -1206,7 +1242,8 @@ end
 --
 -- This doesn't have to export textsize, since these get translated into
 -- font=\command options.  Likewise with textstyle, since that just gets
--- inserted into the node.
+-- inserted into the node.  (Except for setting the default text size in "ipe
+-- node".)
 --
 -- This doesn't export the textstyle option, since export_text() ignores it
 --
@@ -1272,6 +1309,9 @@ function export_stylesheet(sheets)
                "ipe dash %s/.style={%s},\n", dash, dash_options(val)))
    end
    write(indent .. "ipe dash normal,\n")
+   -- text size
+   local textsize = sheets:find("textsize", "normal")
+   write(indent .. "ipe node/.append style={font=" .. textsize .. "},\n")
    -- textstretch
    num_opts("textstretch", "ipe stretch ", "ipe node stretch")
    write(indent .. "ipe stretch normal,\n")
@@ -1289,7 +1329,12 @@ function export_stylesheet(sheets)
 end
 
 
-function export_object(model, obj)
+--------------------------------------------------------------------------------
+-- Export object
+--------------------------------------------------------------------------------
+
+-- origin is a transformation to apply after all others.
+function export_object(model, obj, origin)
    -- The object's properties can specify that only the translation part of
    -- the matrix should apply, or only the "rigid part".  Do that now.
    local matrix = obj:matrix()
@@ -1307,11 +1352,7 @@ function export_object(model, obj)
       end
    end
 
-   -- If a coordinate system is set and we're not in fulldoc mode, use the
-   -- origin of the coordinate system as TikZ's origin.
-   if not dialog_state.fulldoc and model.snap.with_axes then
-      matrix = ipe.Translation(-model.snap.origin) * matrix
-   end
+   matrix = ipe.Translation(-origin) * matrix
 
    if obj:type() == "path" then
       export_path(obj:shape(), obj:get("pathmode"), matrix, obj)
@@ -1327,37 +1368,139 @@ function export_object(model, obj)
 end
 
 
--- Export settings dialog's state
-dialog_state = {
-   fulldoc=true,
-   stylesheets=true,
-   scopeonly=false,
-   colors=true,
-   filename=nil
-}
+--------------------------------------------------------------------------------
+-- Main exporting functions
+--------------------------------------------------------------------------------
+
+-- Create a text label containing "text", and insert "preamble" into the
+-- preamble.
+function create_text_obj(model, origin, text, preamble)
+   local t = { label = "TikZ export to text object",
+               pno = model.pno,
+               vno = model.vno,
+               selection = model:selection(),
+               original = model:page():clone(),
+               sheets = model.doc:sheets():clone(),
+               text = text,
+               preamble = preamble,
+               model = model }
+
+   t.redo = function(t, doc)
+      local page = doc[t.pno]
+
+      -- Move all the old objects to another layer
+      local old_layer = "_TikZ replaced"
+      if not _G.indexOf(old_layer, page:layers()) then
+         page:addLayer(old_layer)
+         for i = 1,page:countViews(),1 do
+            page:setVisible(i, old_layer, false)
+         end
+      end
+      for _,obj in pairs(t.selection) do
+         page:setLayerOf(obj, old_layer)
+      end
+      page:deselectAll()
+
+      -- Update the preamble
+      local preamble = "\n"
+         .. "% The following is auto-generated by the TikZ exporter.\n"
+         .. t.preamble
+      -- Put the preamble in its own stylesheet (creating it if it doesn't
+      -- exist)
+      local sheets = doc:sheets()
+      local sheet
+      for i = 1,sheets:count(),1 do
+         local s = sheets:sheet(i)
+         if s:name() == "TikZ-export" then
+            sheet = s
+            break
+         end
+      end
+      if not sheet then -- add the stylesheet
+         sheet = ipe.Sheet()
+         sheet:setName("TikZ-export")
+         sheets:insert(1, sheet)
+      end
+      sheet:set("preamble", preamble)
+      -- Add a style to make sure the scaling factor is 1 (scaling happens in
+      -- TikZ already)
+      -- The following line doesn't work, probably due to an Ipe bug.  But it
+      -- shouldn't really be necessary
+      -- sheet:add("textsize", "TikZ-normal", "\\normalsize")
+      sheet:add("textstretch", "TikZ-normal", 1)
+
+      -- Add the new TikZ text object
+      local obj = ipe.Text({textsize="TikZ-normal"}, t.text, origin)
+      local layer = page:active(t.vno)
+      page:insert(nil, obj, 1, layer)
+
+      t.model:autoRunLatex()
+   end
+
+   t.undo = function(t, doc)
+      _G.revertOriginal(t, doc)
+      doc:replaceSheets(t.sheets)
+   end
+   model:register(t)
+
+end
+
+
+-- Draw the grid in TikZ
+function export_grid(size)
+   -- small grid lines
+   local options = {}
+   table.insert(options, "black!30")
+   table.insert(options, "line width="
+                   .. prefs.canvas_style.thin_grid_line)
+   table.insert(options, "step="
+                   .. (prefs.grid_size * prefs.canvas_style.thin_step))
+   if prefs.canvas_style.classic_grid then
+      table.insert(
+         options, "dash pattern=on \\pgflinewidth off \\pgflinewidth")
+   end
+   write(indent .. "\\draw[" .. table.concat(options, ", ")
+            .. "] (0,0) grid " .. svec(size) .. ";\n")
+   if prefs.canvas_style.classic_grid then return end
+   -- big grid lines
+   options = {}
+   table.insert(options, "black!50")
+   table.insert(options, "line width="
+                   .. prefs.canvas_style.thick_grid_line)
+   table.insert(options, "step="
+                   .. (prefs.grid_size * prefs.canvas_style.thick_step))
+   write(indent .. "\\draw[" .. table.concat(options, ", ")
+            .. "] (0,0) grid " .. svec(size) .. ";\n")
+end
+
 
 -- Run the export settings dialog
-function run_dialog(model)
+function run_file_dialog(model)
    local d = ipeui.Dialog(model.ui:win(), "TikZ Export")
    d:add("fulldoc", "checkbox",
          {label="Export complete document\n"
              .. "(otherwise no preamble or \\begin{document})",
-          action=function() d:setEnabled("scope", not d:get("fulldoc")) end},
+          action=function()
+             d:setEnabled("scope", not d:get("fulldoc"))
+             if d:get("fulldoc") then d:set("scope", false) end
+          end},
          1, 1, 1, 3)
-   d:set("fulldoc", dialog_state.fulldoc)
+   d:set("fulldoc", params.fulldoc)
    d:add("scope", "checkbox", {label="Export scope instead of tikzpicture"},
          2, 1, 1, 3)
-   d:set("scope", dialog_state.scopeonly)
-   d:setEnabled("scope", not dialog_state.fulldoc)
+   d:set("scope", params.scopeonly)
+   d:setEnabled("scope", not params.fulldoc)
    d:add("stylesheets", "checkbox",
          {label="Export stylesheet\n"
              .. "(otherwise use tikz.isy or similar)"}, 3, 1, 1, 3)
-   d:set("stylesheets", dialog_state.stylesheets)
+   d:set("stylesheets", params.stylesheets)
    d:add("colors", "checkbox", {label="Export colors"}, 4, 1, 1, 3)
-   d:set("colors", dialog_state.colors)
+   d:set("colors", params.colors)
+   d:add("drawgrid", "checkbox", {label="Export grid"}, 5, 1, 1, 3)
+   d:set("drawgrid", params.drawgrid)
 
    -- File dialog
-   local curname = dialog_state.filename or model.file_name or "Untitled.tex"
+   local curname = params.filename or model.file_name or "Untitled.tex"
    local function extract_dir()
       local dir
       if curname then dir = curname:match(prefs.dir_pattern) end
@@ -1381,11 +1524,11 @@ function run_dialog(model)
    end
    local name = extract_name()
    curname = extract_dir() .. prefs.fsep .. name
-   d:add("label2", "label", {label="Output file"}, 5, 1)
-   d:add("filename", "input", {}, 5, 2)
+   d:add("label2", "label", {label="Output file"}, 6, 1)
+   d:add("filename", "input", {}, 6, 2)
    d:set("filename", extract_name())
    d:setEnabled("filename", false)
-   d:add("choose", "button", {label="C&hoose", action=filedialog}, 5, 3)
+   d:add("choose", "button", {label="C&hoose", action=filedialog}, 6, 3)
 
    d:addButton("ok", "&Ok", "accept")
    d:addButton("cancel", "&Cancel", "reject")
@@ -1394,7 +1537,7 @@ function run_dialog(model)
    t = ipeui.Timer(
       {setEnabled=function()
           d:setEnabled("filename", false)
-          d:setEnabled("scope", not dialog_state.fulldoc)
+          d:setEnabled("scope", not params.fulldoc)
       end}, "setEnabled")
    t:setInterval(0)
    t:setSingleShot(true)
@@ -1402,38 +1545,113 @@ function run_dialog(model)
 
    if not d:execute() then return nil end
 
-   dialog_state.fulldoc = d:get("fulldoc")
-   dialog_state.stylesheets = d:get("stylesheets")
-   dialog_state.colors = d:get("colors")
-   dialog_state.scopeonly = d:get("scope") and not d:get("fulldoc")
-   dialog_state.filename = curname
+   params.fulldoc = d:get("fulldoc")
+   params.stylesheets = d:get("stylesheets")
+   params.colors = d:get("colors")
+   params.scopeonly = d:get("scope") and not d:get("fulldoc")
+   params.drawgrid = d:get("drawgrid")
+   params.filename = curname
 
    return true
 end
 
 
-function run(model)
-   local page = model:page()
-   indent = "" -- indentation (global)
+-- Run the export to text dialog
+function run_text_dialog(model)
+   local d = ipeui.Dialog(model.ui:win(), "TikZ Export")
+   d:add("tikzstyle", "checkbox",
+         {label="Use TikZ styles"}, 1, 1)
+   d:set("tikzstyle", not params.stylesheets)
+   d:addButton("ok", "&Ok", "accept")
+   d:addButton("cancel", "&Cancel", "reject")
+   if not d:execute() then return nil end
 
-   if not run_dialog(model) then return end
-   local f, e = _G.io.open(dialog_state.filename, "w")
-   if not f then
-      ipeui.messageBox(
-         model.ui:win(), "warning",
-         "Cannot open " .. dialog_state.filename, e, nil)
-      return
+   params.fulldoc = false
+   params.stylesheets = not d:get("tikzstyle")
+   params.colors = false
+   params.scopeonly = false
+   params.drawgrid = false
+   params.filename = nil
+
+   return true
+end
+
+
+-- Configuration parameters from export dialogs
+params_text = {
+   fulldoc=false,
+   stylesheets=true,
+   colors=false,
+   scopeonly=false,
+   drawgrid=false,
+   filename=nil
+}
+
+params_file = {
+   fulldoc=true,
+   stylesheets=true,
+   scopeonly=false,
+   colors=true,
+   drawgrid=false,
+   filename=nil
+}
+
+params = {}
+
+function run(model, num)
+   local do_file = (num == 1)
+   local do_text = (num == 2)
+
+   local page = model:page()
+   local sheets = model.doc:sheets()
+
+   -- indentation (global)
+   indent = ""
+
+   -- Run the parameters dialog
+   if do_file then
+      params = params_file
+      if not run_file_dialog(model) then return end
+   elseif do_text then
+      params = params_text
+      if #model:selection() == 0 then
+         ipeui.messageBox(
+            model.ui:win(), "warning", "TikZ export error",
+            "Please select some objects to convert to "
+               .. "a TikZ text object", "ok")
+         return
+      end
+      if not run_text_dialog(model) then return end
    end
-   write = function(arg) f:write(arg) end
+
+   -- Open files, setup write function(s)
+   local f, e, text_contents, preamble_contents, write_text, write_preamble
+   if do_file then
+      f, e = _G.io.open(params.filename, "w")
+      if not f then
+         ipeui.messageBox(
+            model.ui:win(), "warning",
+            "Cannot open " .. params.filename, e, nil)
+         return
+      end
+      write = function(arg) f:write(arg) end
+   elseif do_text then
+      text_contents = ""
+      write_text = function(arg) text_contents = text_contents .. arg end
+      preamble_contents = ""
+      write_preamble = function(arg)
+         preamble_contents = preamble_contents .. arg end
+      write = write_text
+   end
 
    -- preamble
-   write("\n")
    local layout
-   if dialog_state.fulldoc then
+   if params.fulldoc then -- implies do_file
+      write("\n")
       write("% Otherwise some colors may look a bit different in ipe and TeX\n")
       write("\\PassOptionsToPackage{rgb}{xcolor}\n\n")
       write("\\documentclass{article}\n")
-      layout = model.doc:sheets():find("layout")
+      layout = sheets:find("layout")
       write(string.format(
                "\\usepackage[papersize={%sbp,%sbp},scale=1,margin=0pt]"
                   .. "{geometry}\n",
@@ -1443,7 +1661,8 @@ function run(model)
       write("\\usetikzlibrary{arrows.meta,patterns}\n")
       write("\\usetikzlibrary{ipe} % ipe compatibility library\n\n")
 
-      local preamble = model.doc:properties()["preamble"]
+      local preamble = sheets:find("preamble")
+      preamble = preamble .. model.doc:properties().preamble
       if string.find(preamble, "[^\n]") then
          write("% ---- begin preamble ----\n")
          write(preamble .. "\n")
@@ -1451,61 +1670,103 @@ function run(model)
       end
    end
 
-   if dialog_state.stylesheets then
-      export_stylesheet(model.doc:sheets())
-      write("\n")
+   if do_text then
+      write_preamble("\\usepackage{tikz}\n")
+      write_preamble("\\usetikzlibrary{arrows.meta,patterns}\n")
+      write_preamble("\\usetikzlibrary{ipe} % ipe compatibility library\n\n")
    end
 
-   if dialog_state.colors then
-      for _,color in ipairs(model.doc:sheets():allNames("color")) do
-         val = model.doc:sheets():find("color", color)
+   -- Stylesheet
+   if params.stylesheets then
+      if do_text then write = write_preamble end
+      export_stylesheet(sheets)
+      if params.fulldoc then write("\n") end
+      if do_text then write = write_text end
+   end
+
+   -- Colors
+   if params.colors then -- implies do_file
+      for _,color in ipairs(sheets:allNames("color")) do
+         val = sheets:find("color", color)
          write(indent .. string.format(
                   "\\definecolor{%s}{rgb}{%s,%s,%s}\n",
                   color, sround(val.r), sround(val.g), sround(val.b)))
       end
-      write("\n")
+      if params.fulldoc then write("\n") end
    end
 
-   -- end preamble
-   if dialog_state.fulldoc then
+   if params.fulldoc then
       write("\\begin{document}\n")
       write("\\thispagestyle{empty}\n")
       write("\\noindent\n")
    end
 
+   -- TikZ environment
    local envname = "tikzpicture"
-   if dialog_state.scopeonly then envname = "scope" end
+   if params.scopeonly then envname = "scope" end
    write("\\begin{" .. envname .. "}")
-   if dialog_state.stylesheets then
-      write("[ipe stylesheet]")
+   local options = {}
+   if params.stylesheets then
+      table.insert(options, "ipe stylesheet")
    else
-      write("[ipe import]")
+      table.insert(options, "ipe import")
    end
-   write("\n")
+   if do_text then
+      -- Put TikZ's origin at the lower-right corner of the text box
+      table.insert(options, "baseline")
+      table.insert(options, "trim left")
+   end
+   write("[" .. table.concat(options, ", ") .. "]\n")
    indent = indent_amt
 
-   if dialog_state.fulldoc then
+   -- In full document mode, set the bounding box beforehand to reflect the page
+   -- size.
+   if params.fulldoc then
       write(indent .. string.format(
                "\\useasboundingbox %s rectangle %s;\n",
                svec(-layout.origin), svec(layout.papersize - layout.origin)))
    end
 
-   -- Debug: draw grid
-   -- write(indent .. "\\draw[very thin, black!10, step=16] (0,0) grid (256+128,256+128);\n")
-   -- write(indent .. "\\draw[very thin, black!25, step=64] (0,0) grid (256+128,256+128);\n")
+   -- Draw grid
+   if params.drawgrid then
+      export_grid(layout.framesize)
+   end
+
+   -- Decide on an origin for TikZ
+   local origin = ipe.Vector(0,0)
+   if do_file then
+      if not params.fulldoc and model.snap.with_axes then
+         origin = model.snap.origin
+      end
+   elseif do_text then
+      -- Use the coordinate system origin if it's set; otherwise use the
+      -- bottom-left corner of the bounding box
+      if model.snap.with_axes then
+         origin = model.snap.origin
+      else
+         local box = bounding_box(model)
+         origin = box:bottomLeft()
+      end
+   end
 
    for i, obj, sel, layer in page:objects() do
-      -- Only export objects that appear in the first view
-      if page:visible(1, i) then
-         export_object(model, obj)
+      -- Only export objects that appear in the current view
+      if page:visible(model.vno, i) then
+         -- In do_text mode, only export selected objects
+         if do_file or (do_text and sel) then
+            export_object(model, obj, origin)
+         end
       end
    end
    write("\\end{" .. envname .. "}\n")
 
-   if dialog_state.fulldoc then
+   if params.fulldoc then
       write("\\end{document}\n")
+      write("\n")
    end
 
-   write("\n")
-   f:close()
+   if do_file then f:close()
+   elseif do_text then
+      create_text_obj(model, origin, text_contents, preamble_contents)
+   end
 end
