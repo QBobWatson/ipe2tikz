@@ -1485,7 +1485,6 @@ function run_file_dialog(model)
              if d:get("fulldoc") then d:set("scope", false) end
           end},
          1, 1, 1, 3)
-   d:set("fulldoc", params.fulldoc)
    d:add("scope", "checkbox", {label="Export scope instead of tikzpicture"},
          2, 1, 1, 3)
    d:set("scope", params.scopeonly)
@@ -1538,6 +1537,7 @@ function run_file_dialog(model)
       {setEnabled=function()
           d:setEnabled("filename", false)
           d:setEnabled("scope", not params.fulldoc)
+          d:set("fulldoc", params.fulldoc)
       end}, "setEnabled")
    t:setInterval(0)
    t:setSingleShot(true)
