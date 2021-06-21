@@ -1704,6 +1704,7 @@ function run(model, num)
    -- TikZ environment
    local envname = "tikzpicture"
    if params.scopeonly then envname = "scope" end
+   write("\\resizebox{\\ipefigwidth}{!}{\n")
    write("\\begin{" .. envname .. "}")
    local options = {}
    if params.stylesheets then
@@ -1759,6 +1760,7 @@ function run(model, num)
       end
    end
    write("\\end{" .. envname .. "}\n")
+   write("}\n")
 
    if params.fulldoc then
       write("\\end{document}\n")
