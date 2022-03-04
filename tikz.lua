@@ -1389,7 +1389,7 @@ function create_text_obj(model, origin, text, preamble)
       local page = doc[t.pno]
 
       -- Move all the old objects to another layer
-      local old_layer = "_TikZ replaced"
+      local old_layer = "_TikZ_replaced"
       if not _G.indexOf(old_layer, page:layers()) then
          page:addLayer(old_layer)
          for i = 1,page:countViews(),1 do
