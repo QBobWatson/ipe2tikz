@@ -33,7 +33,7 @@ to specify most drawing parameters.
 1. Copy `tikz.isy` into `~/.ipe/styles` on Linux and Macs.  On Windows, I
    believe you have to use the directory containing the built-in stylesheets.
 2. Copy `tikz.lua` into `~/.ipe/ipelets` on Linux and Macs, and into
-   `$USERPROFILE\Ipelets` on Windows.
+   `%USERPROFILE%\Ipelets` on Windows.
 3. Copy `tikzlibraryipe.code.tex` somewhere LaTeX can find it, e.g. the same
    directory as the LaTeX file you're trying to compile.  Or you can follow
    [these instructions](https://tex.stackexchange.com/questions/187193/how-to-install-tikz-pgf-libraries?rq=1).
