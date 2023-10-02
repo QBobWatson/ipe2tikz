@@ -1,6 +1,9 @@
 ipe2tikz
 ========
 
+*Update:* This repository is not maintained.  The software is licensed under
+the GPL; anyone is welcome to fork it.
+
 This is a TikZ exporter ipelet: a plugin for [Ipe](http://ipe.otfried.org/) that
 exports **readable** [TikZ](https://sourceforge.net/projects/pgf/) pictures for
 use in LaTeX documents.
