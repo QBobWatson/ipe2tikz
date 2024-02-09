@@ -656,23 +656,23 @@ function export_text(model, obj, matrix)
    local anchor
    local ha = obj:get("horizontalalignment")
    local va = obj:get("verticalalignment")
-   if minipage then ha = "left" end
+   -- if minipage then ha = "left" end
    if ha == "left" then
       if va == "bottom" then
          anchor = "south west"
       elseif va == "baseline" then
          anchor = "base west"
-      elseif va == "vcenter" then
+      elseif va == "vcenter" or va == "center" then
          anchor = "west"
       elseif va == "top" then
          anchor = "north west"
       end
-   elseif ha == "hcenter" then
+   elseif ha == "hcenter" or ha == "center" then
       if va == "bottom" then
          anchor = "south"
       elseif va == "baseline" then
          anchor = "base"
-      elseif va == "vcenter" then
+      elseif va == "vcenter" or va == "center" then
          anchor = "center"
       elseif va == "top" then
          anchor = "north"
@@ -682,7 +682,7 @@ function export_text(model, obj, matrix)
          anchor = "south east"
       elseif va == "baseline" then
          anchor = "base east"
-      elseif va == "vcenter" then
+      elseif va == "vcenter" or va == "center" then
          anchor = "east"
       elseif va == "top" then
          anchor = "north east"
