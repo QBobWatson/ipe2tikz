@@ -608,6 +608,35 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Export reference
+--------------------------------------------------------------------------------
+
+-- References occur for marks (this case is handled in export_mark), but also
+-- when symbols are used. See https://ipe.otfried.org/manual/manual_20.html
+-- A symbol usually contains a group which could be exported by the export_group
+-- function. However, in addition to the matrix, a reference might also have a
+-- position paramter. This additional translation needs to be taken into account
+-- during export.
+function export_reference(model, obj, matrix)
+   -- First we need to find the name of the symbol
+   -- This is done using basic string processing
+   -- First extract xml string
+   local xml = obj:xml()
+   -- Next, find the substring name="whatever"
+   -- foo.-bar matches the shortest possible sequence starting with foo and
+   -- ending with bar
+   local name_tmp = string.sub(xml, string.find(xml, 'name=".-"'))
+   -- Next the part between the quotations marks will be extracted
+   local sym_name = string.sub(name_tmp, 7, string.len(name_tmp)-1)
+   -- Now we can look for the symbol in all our stylesheets
+   -- We assume that the symbol consists of a group
+   local group = model.doc:sheets():find("symbol", sym_name)
+   -- Both reference and group have a matrix, furthermore the reference might have
+   -- a position as well. The order of matrices matters of course
+   export_group(model, group, matrix*group:matrix()*ipe.Translation(obj:position()))
+end
+
+--------------------------------------------------------------------------------
 -- Export text
 --------------------------------------------------------------------------------
 
@@ -1361,7 +1390,11 @@ function export_object(model, obj, origin)
    elseif obj:type() == "group" then
       export_group(model, obj, matrix)
    elseif obj:type() == "reference" then
-      export_mark(model, obj, matrix)
+      if not string.match(obj:get("markshape"), "undefined") then -- reference to a marker
+         export_mark(model, obj, matrix)
+      else -- reference to a general symbol
+         export_reference(model, obj, matrix)
+      end
    else
       print("Exporting objects of type " .. obj:type() .. " is not supported.")
    end
