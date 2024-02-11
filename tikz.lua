@@ -798,9 +798,9 @@ function export_text(model, obj, matrix)
    local opacity = obj:get("opacity")
    local prepend = nil
    if params.stylesheets then prepend = "ipe opacity " end
-   opacity = string.gsub(opacity, "%%", "") -- strip %
    if opacity ~= "opaque" then
-      string_option(opacity, nil, options, prepend)
+      opacity = string.format("%.2f", tonumber(string.gsub(opacity, "%%", "")) / 100)
+      string_option(opacity, "opacity", options, prepend)
    end
 
    write(indent .. "\\node")
@@ -1229,9 +1229,9 @@ function export_path(shape, mode, matrix, obj)
       local opacity = obj:get("opacity")
       local prepend = nil
       if params.stylesheets then prepend = "ipe opacity " end
-      opacity = string.gsub(opacity, "%%", "") -- strip %
       if opacity ~= "opaque" then
-         string_option(opacity, nil, options, prepend)
+         opacity = string.format("%.2f", tonumber(string.gsub(opacity, "%%", "")) / 100)
+         string_option(opacity, "opacity", options, prepend)
       end
    end
 
