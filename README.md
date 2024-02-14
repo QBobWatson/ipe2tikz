@@ -1,8 +1,8 @@
 ipe2tikz
 ========
 
-*Update:* This repository is not maintained.  The software is licensed under
-the GPL; anyone is welcome to fork it.
+The main repository is not maintained.  The software is licensed under
+the GPL; so I forked it and fixed a few bugs.
 
 This is a TikZ exporter ipelet: a plugin for [Ipe](http://ipe.otfried.org/) that
 exports **readable** [TikZ](https://sourceforge.net/projects/pgf/) pictures for
@@ -36,7 +36,7 @@ to specify most drawing parameters.
 1. Copy `tikz.isy` into `~/.ipe/styles` on Linux and Macs.  On Windows, I
    believe you have to use the directory containing the built-in stylesheets.
 2. Copy `tikz.lua` into `~/.ipe/ipelets` on Linux and Macs, and into
-   `$USERPROFILE\Ipelets` on Windows.
+   `%USERPROFILE%\Ipelets` on Windows.
 3. Copy `tikzlibraryipe.code.tex` somewhere LaTeX can find it, e.g. the same
    directory as the LaTeX file you're trying to compile.  Or you can follow
    [these instructions](https://tex.stackexchange.com/questions/187193/how-to-install-tikz-pgf-libraries?rq=1).
